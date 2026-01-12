@@ -1,8 +1,8 @@
 # timelang
 
-Parse natural language time expressions into dates, durations, and ranges.
+<img src="./.github/header.png" align="right" width="320" />
 
-<img src="./.github/header.png" align="right" width="500" />
+Parse natural language time expressions into dates, durations, and ranges.
 
 Install the package:
 
