@@ -5,7 +5,7 @@
 [![npm version](https://img.shields.io/npm/v/timelang)](https://www.npmjs.com/package/timelang)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-It takes the natural language text as input and provides structured outputs like JavaScript `Date` objects, duration in milliseconds, or date ranges.
+It takes natural language inputs and converts them into structured date, duration, or span objects.
 
 - **Flexible inputs** — `tomorrow`, `next friday at 3pm`, `jan 5 to jan 20`, `2 weeks`
 - **Fuzzy periods** — `mid Q1`, `early january`, `end of month`
@@ -41,19 +41,69 @@ extract('Kickoff - Jan 5, Sprint 1 - Jan 6 to Jan 19, Launch - Feb 1');
 // Returns array of 3 parsed results with titles
 ```
 
-## Table of Contents
+## API Reference
 
-- [API](#api)
-  - [parse()](#parseinput-options)
-  - [parseDate()](#parsedateinput-options)
-  - [parseDuration()](#parsedurationinput-options)
-  - [parseSpan()](#parsespaninput-options)
-  - [extract()](#extractinput-options)
-- [Options](#options)
-- [TypeScript Types](#typescript-types)
-- [License](#license)
+| Method | Description | Returns |
+|--------|-------------|---------|
+| [`parseDate(input, options?)`](#parsedateinput-options) | Parse single date expressions | `Date \| null` |
+| [`parse(input, options?)`](#parseinput-options) | Parse any time expression with type detection | `ParseResult` |
+| [`parseDuration(input, options?)`](#parsedurationinput-options) | Parse duration expressions | `number \| null` (ms) |
+| [`parseSpan(input, options?)`](#parsespaninput-options) | Parse date ranges and time spans | `SpanResult \| null` |
+| [`extract(input, options?)`](#extractinput-options) | Extract multiple time expressions from text | `ParseResult[]` |
+
+See also: [Options](#options) · [TypeScript Types](#typescript-types) · [License](#license)
 
 ## API
+
+### `parseDate(input, options?)`
+
+Returns a Date or null. Use when you only want single dates.
+
+```typescript
+// Relative dates
+parseDate('today');
+parseDate('tomorrow');
+parseDate('yesterday');
+parseDate('day after tomorrow');
+
+// Weekdays
+parseDate('monday');                   // next Monday
+parseDate('next friday');
+parseDate('last tuesday');
+parseDate('this wednesday');
+
+// Month and day
+parseDate('march 15');
+parseDate('march 15th');
+parseDate('15th march');
+parseDate('the 15th of march');
+parseDate('march 15th 2025');
+
+// With time
+parseDate('tomorrow at 3pm');
+parseDate('next monday at 9:30am');
+parseDate('march 15 at 14:00');
+
+// ISO format
+parseDate('2025-03-15');
+parseDate('2025-03-15T14:30:00');
+
+// Relative time
+parseDate('in 30 minutes');
+parseDate('in 2 hours');
+
+// Period boundaries
+parseDate('end of month');
+parseDate('end of week');
+parseDate('end of day');
+parseDate('beginning of year');
+parseDate('beginning of month');
+
+// Invalid input
+parseDate('not a date');               // null
+parseDate('february 30');              // null (invalid date)
+parseDate('2 weeks');                  // null (duration, not date)
+```
 
 ### `parse(input, options?)`
 
@@ -110,56 +160,6 @@ parse('Project Kickoff [March 1st]');
 // Invalid input
 parse('random text');
 // null
-```
-
-### `parseDate(input, options?)`
-
-Returns a Date or null. Use when you only want single dates.
-
-```typescript
-// Relative dates
-parseDate('today');
-parseDate('tomorrow');
-parseDate('yesterday');
-parseDate('day after tomorrow');
-
-// Weekdays
-parseDate('monday');                   // next Monday
-parseDate('next friday');
-parseDate('last tuesday');
-parseDate('this wednesday');
-
-// Month and day
-parseDate('march 15');
-parseDate('march 15th');
-parseDate('15th march');
-parseDate('the 15th of march');
-parseDate('march 15th 2025');
-
-// With time
-parseDate('tomorrow at 3pm');
-parseDate('next monday at 9:30am');
-parseDate('march 15 at 14:00');
-
-// ISO format
-parseDate('2025-03-15');
-parseDate('2025-03-15T14:30:00');
-
-// Relative time
-parseDate('in 30 minutes');
-parseDate('in 2 hours');
-
-// Period boundaries
-parseDate('end of month');
-parseDate('end of week');
-parseDate('end of day');
-parseDate('beginning of year');
-parseDate('beginning of month');
-
-// Invalid input
-parseDate('not a date');               // null
-parseDate('february 30');              // null (invalid date)
-parseDate('2 weeks');                  // null (duration, not date)
 ```
 
 ### `parseDuration(input, options?)`
