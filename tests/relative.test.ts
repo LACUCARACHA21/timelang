@@ -88,13 +88,13 @@ describe('Relative Duration Parsing', () => {
     });
 
     it('should parse "last year"', () => {
+      // "last year" is interpreted as the previous calendar year (not "past 365 days")
+      // Returns start of 2024 since reference is Jan 15, 2025
       const result = parse('last year', { referenceDate });
       expect(result).not.toBeNull();
-      expect(result?.type).toBe('span');
-      if (result?.type === 'span') {
-        // Approximate check for 1 year
-        expect(result.duration).toBeGreaterThanOrEqual(360 * MS_PER_DAY);
-        expect(result.duration).toBeLessThanOrEqual(370 * MS_PER_DAY);
+      expect(result?.type).toBe('date');
+      if (result?.type === 'date') {
+        expect(result.date.toISOString()).toBe(utc(2024, 1, 1).toISOString());
       }
     });
 

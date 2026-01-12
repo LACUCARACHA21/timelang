@@ -44,6 +44,21 @@ function expectFuzzyType(input: string, options = { referenceDate }) {
   }
 }
 
+// Helper for boundary expressions that return a specific date (beginning/start/end of X)
+function expectBoundaryDate(
+  input: string,
+  expectedDate: Date,
+  options = { referenceDate }
+) {
+  const result = parse(input, options);
+  expect(result).not.toBeNull();
+  expect(result?.type).toBe('date');
+  if (result?.type === 'date') {
+    expect(result.date.toISOString()).toBe(expectedDate.toISOString());
+    expect(result.title).toBeNull();
+  }
+}
+
 describe('Fuzzy Period Parsing', () => {
   describe('Quarters (basic)', () => {
     it('should parse "Q1"', () => {
@@ -195,7 +210,7 @@ describe('Fuzzy Period Parsing', () => {
     });
 
     it('should parse "beginning of Q1"', () => {
-      expectFuzzyType('beginning of Q1');
+      expectBoundaryDate('beginning of Q1', utc(2025, 1, 1));
     });
 
     it('should parse "middle of Q1"', () => {
@@ -203,11 +218,11 @@ describe('Fuzzy Period Parsing', () => {
     });
 
     it('should parse "end of Q1"', () => {
-      expectFuzzyType('end of Q1');
+      expectBoundaryDate('end of Q1', utc(2025, 3, 31));
     });
 
     it('should parse "start of Q2"', () => {
-      expectFuzzyType('start of Q2');
+      expectBoundaryDate('start of Q2', utc(2025, 4, 1));
     });
   });
 
@@ -237,7 +252,7 @@ describe('Fuzzy Period Parsing', () => {
     });
 
     it('should parse "beginning of 2025"', () => {
-      expectFuzzyType('beginning of 2025');
+      expectBoundaryDate('beginning of 2025', utc(2025, 1, 1));
     });
 
     it('should parse "middle of 2025"', () => {
@@ -245,11 +260,11 @@ describe('Fuzzy Period Parsing', () => {
     });
 
     it('should parse "end of 2025"', () => {
-      expectFuzzyType('end of 2025');
+      expectBoundaryDate('end of 2025', utc(2025, 12, 31));
     });
 
     it('should parse "start of 2025"', () => {
-      expectFuzzyType('start of 2025');
+      expectBoundaryDate('start of 2025', utc(2025, 1, 1));
     });
 
     it('should parse "first half of 2025"', () => {
@@ -295,7 +310,7 @@ describe('Fuzzy Period Parsing', () => {
     });
 
     it('should parse "beginning of march"', () => {
-      expectFuzzyType('beginning of march');
+      expectBoundaryDate('beginning of march', utc(2025, 3, 1));
     });
 
     it('should parse "middle of march"', () => {
@@ -303,11 +318,11 @@ describe('Fuzzy Period Parsing', () => {
     });
 
     it('should parse "end of march"', () => {
-      expectFuzzyType('end of march');
+      expectBoundaryDate('end of march', utc(2025, 3, 31));
     });
 
     it('should parse "start of april"', () => {
-      expectFuzzyType('start of april');
+      expectBoundaryDate('start of april', utc(2025, 4, 1));
     });
 
     it('should parse "first week of january"', () => {
@@ -341,7 +356,8 @@ describe('Fuzzy Period Parsing', () => {
     });
 
     it('should parse "beginning of the week"', () => {
-      expectFuzzyType('beginning of the week');
+      // Reference date is Jan 15, 2025 (Wednesday), week starts Sunday = Jan 12
+      expectBoundaryDate('beginning of the week', utc(2025, 1, 12));
     });
 
     it('should parse "middle of the week"', () => {
@@ -349,7 +365,8 @@ describe('Fuzzy Period Parsing', () => {
     });
 
     it('should parse "end of the week"', () => {
-      expectFuzzyType('end of the week');
+      // Reference date is Jan 15, 2025 (Wednesday), week ends Saturday = Jan 18
+      expectBoundaryDate('end of the week', utc(2025, 1, 18));
     });
 
     it('should parse "early this week"', () => {

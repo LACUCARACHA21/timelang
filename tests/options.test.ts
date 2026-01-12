@@ -381,17 +381,18 @@ describe('Parse Options', () => {
 
   describe('Default values', () => {
     it('should use current date as default referenceDate', () => {
-      const before = new Date();
+      const now = new Date();
       const result = parse('tomorrow');
-      const after = new Date();
 
       expect(result).not.toBeNull();
       if (result?.type === 'date') {
-        // Tomorrow should be between before+1day and after+1day
-        const minDate = new Date(before.getTime() + 24 * 60 * 60 * 1000);
-        const maxDate = new Date(after.getTime() + 24 * 60 * 60 * 1000);
-        expect(result.date.getTime()).toBeGreaterThanOrEqual(minDate.getTime() - 1000);
-        expect(result.date.getTime()).toBeLessThanOrEqual(maxDate.getTime() + 1000);
+        // Tomorrow should be midnight UTC of the next calendar day
+        const expectedTomorrow = new Date(Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate() + 1
+        ));
+        expect(result.date.toISOString()).toBe(expectedTomorrow.toISOString());
       }
     });
 
