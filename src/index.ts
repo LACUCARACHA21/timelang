@@ -43,9 +43,19 @@ export function parse(input: string, options?: ParseOptions): ParseResult | null
 
 export function parseDate(input: string, options?: ParseOptions): Date | null {
   const result = parse(input, options);
-  if (result && result.type === 'date') {
+  if (!result) {
+    return null;
+  }
+
+  if (result.type === 'date') {
     return result.date;
   }
+
+  if (result.type === 'duration') {
+    const ref = options?.referenceDate ?? new Date();
+    return new Date(ref.getTime() + result.duration);
+  }
+
   return null;
 }
 

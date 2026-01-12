@@ -499,9 +499,16 @@ describe('Single Date Parsing', () => {
       expectParseDate('tomorrow', utc(2025, 1, 16));
     });
 
-    it('should return null for non-date input', () => {
+    it('should convert duration to date relative to reference', () => {
       const result = parseDate('2 weeks', { referenceDate });
-      expect(result).toBeNull();
+      expect(result).not.toBeNull();
+      expect(result?.toISOString()).toBe(utc(2025, 1, 29, 12, 0).toISOString());
+    });
+
+    it('should convert "3 days" to date relative to reference', () => {
+      const result = parseDate('3 days', { referenceDate });
+      expect(result).not.toBeNull();
+      expect(result?.toISOString()).toBe(utc(2025, 1, 18, 12, 0).toISOString());
     });
 
     it('should return null for invalid input', () => {
