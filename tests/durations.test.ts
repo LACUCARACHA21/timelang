@@ -177,16 +177,24 @@ describe('Duration Parsing', () => {
       expectDuration('4w', 4 * MS_PER_WEEK);
     });
 
-    it('should parse "1m"', () => {
-      expectDurationApprox('1m', MS_PER_MONTH);
+    it('should parse "1m" as 1 minute', () => {
+      expectDuration('1m', MS_PER_MINUTE);
     });
 
-    it('should parse "2m"', () => {
-      expectDurationApprox('2m', 2 * MS_PER_MONTH);
+    it('should parse "30m" as 30 minutes', () => {
+      expectDuration('30m', 30 * MS_PER_MINUTE);
     });
 
-    it('should parse "6m"', () => {
-      expectDurationApprox('6m', 6 * MS_PER_MONTH);
+    it('should parse "1mo" as 1 month', () => {
+      expectDurationApprox('1mo', MS_PER_MONTH);
+    });
+
+    it('should parse "2mo" as 2 months', () => {
+      expectDurationApprox('2mo', 2 * MS_PER_MONTH);
+    });
+
+    it('should parse "6mo" as 6 months', () => {
+      expectDurationApprox('6mo', 6 * MS_PER_MONTH);
     });
 
     it('should parse "1y"', () => {
@@ -435,8 +443,12 @@ describe('Duration Parsing', () => {
       expectDuration('2h 30m', 2 * MS_PER_HOUR + 30 * MS_PER_MINUTE);
     });
 
-    it('should parse "1y 6m"', () => {
-      expectDurationApprox('1y 6m', MS_PER_YEAR + 6 * MS_PER_MONTH);
+    it('should parse "1y 6mo"', () => {
+      expectDurationApprox('1y 6mo', MS_PER_YEAR + 6 * MS_PER_MONTH);
+    });
+
+    it('should parse "1y 6m" as 1 year 6 minutes', () => {
+      expectDurationApprox('1y 6m', MS_PER_YEAR + 6 * MS_PER_MINUTE);
     });
 
     it('should parse "1 week, 2 days"', () => {

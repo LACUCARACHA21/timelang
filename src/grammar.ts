@@ -566,11 +566,11 @@ const grammar: Grammar = {
     {"name": "duration", "symbols": ["duration", "_", (lexer.has("comma") ? {type: "comma"} : comma), "_", "andConnector", "_", "duration"], "postprocess": d => ({ ...d[0], combined: [d[0], d[6]] })},
     {"name": "duration", "symbols": ["duration", "_", "duration"], "postprocess": d => ({ ...d[0], combined: [d[0], d[2]] })},
     {"name": "abbreviatedDuration", "symbols": [(lexer.has("abbreviatedDuration") ? {type: "abbreviatedDuration"} : abbreviatedDuration)], "postprocess":  d => {
-          const match = d[0].value.match(/^(\d+)([wdhsmy])$/);
+          const match = d[0].value.match(/^(\d+)(mo|w|d|h|m|s|y)$/);
           if (!match) return null;
           const value = parseInt(match[1], 10);
-          // Note: 'm' is month (as per test expectations), not minute
-          const unitMap: Record<string, string> = { w: 'week', d: 'day', h: 'hour', m: 'month', s: 'second', y: 'year' };
+          // 'm' = minute, 'mo' = month
+          const unitMap: Record<string, string> = { w: 'week', d: 'day', h: 'hour', m: 'minute', mo: 'month', s: 'second', y: 'year' };
           return makeDuration(value, unitMap[match[2]]);
         } },
     {"name": "date", "symbols": ["specialDay"], "postprocess": d => makeDate({ special: d[0] })},

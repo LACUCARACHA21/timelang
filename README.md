@@ -173,14 +173,16 @@ parse('garbage');               // null
 
 ### `parseDate(input, options?)`
 
-Returns a Date. Works with date expressions and durations (treated as relative dates).
+Returns a Date. Works with date expressions, durations (treated as relative dates), and fuzzy periods (returns the start date).
 
 ```typescript
 parseDate('tomorrow');          // Date (tomorrow at midnight)
 parseDate('next friday at 3pm');// Date
-parseDate('2 weeks');           // Date (2 weeks from now)
+parseDate('2 weeks');           // Date (2 weeks from reference date)
 parseDate('in 30 minutes');     // Date
-parseDate('jan 5 to jan 20');   // null (not a single date)
+parseDate('Q1 2025');           // Date (January 1, 2025 - start of period)
+parseDate('mid january');       // Date (start of mid-january range)
+parseDate('jan 5 to jan 20');   // null (explicit ranges not supported)
 ```
 
 ### `parseDuration(input, options?)`
@@ -236,7 +238,8 @@ extract('Call at 2pm, Meeting at 4pm, Dinner at 7pm');
 
 ### Durations
 - Basic: `3 days`, `2 weeks`, `1 month`, `6 hours`
-- Abbreviated: `1d`, `2w`, `3m`, `1y`, `2h`, `30min`
+- Abbreviated: `1d`, `2w`, `3mo`, `1y`, `2h`, `30m`
+  - `m` = minutes, `mo` = months
 - Word numbers: `one week`, `two days`, `a month`
 - Fractional: `1.5 days`, `half a week`, `quarter hour`
 - Combined: `1 week and 2 days`, `2h 30m`, `1 hour 45 minutes`
@@ -326,7 +329,7 @@ ISO 8601 format (YYYY-MM-DD) always works regardless of this option.
 ## Return Types
 
 ```typescript
-type ParseResult = DateResult | DurationResult | SpanResult | FuzzyResult;
+type ParseResult = DateResult | DurationResult | SpanResult | FuzzyResult | null;
 
 interface DateResult {
   type: 'date';

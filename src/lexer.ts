@@ -29,10 +29,10 @@ const lexer = moo.compile({
   // Decimal numbers (must come before integer)
   decimal: /\d+\.\d+/,
 
-  // Abbreviated duration units: 1w, 3d, 2h, 30m (minutes), 5s, 1y, 6m (months)
-  // Note: 'm' is ambiguous - we use 'mo' for months and 'm' for minutes in parsing context
+  // Abbreviated duration units: 1w, 3d, 2h, 30m (minutes), 5s, 1y, 6mo (months)
+  // 'm' = minutes, 'mo' = months
   abbreviatedDuration: {
-    match: /\d+(?:w|d|h|m|s|y)\b/,
+    match: /\d+(?:mo|w|d|h|m|s|y)\b/,
     value: (s: string) => s.toLowerCase(),
   },
 

@@ -28,7 +28,7 @@ export interface FuzzyResult {
   title: string | null;
 }
 
-export type ParseResult = DateResult | DurationResult | SpanResult | FuzzyResult;
+export type ParseResult = DateResult | DurationResult | SpanResult | FuzzyResult | null;
 
 export interface ParseOptions {
   referenceDate?: Date;
@@ -54,6 +54,10 @@ export function parseDate(input: string, options?: ParseOptions): Date | null {
   if (result.type === 'duration') {
     const ref = options?.referenceDate ?? new Date();
     return new Date(ref.getTime() + result.duration);
+  }
+
+  if (result.type === 'fuzzy') {
+    return result.start;
   }
 
   return null;

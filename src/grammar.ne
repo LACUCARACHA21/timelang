@@ -500,13 +500,13 @@ duration -> number _ unit {% d => makeDuration(d[0], d[2]) %}
           | duration _ %comma _ andConnector _ duration {% d => ({ ...d[0], combined: [d[0], d[6]] }) %}
           | duration _ duration {% d => ({ ...d[0], combined: [d[0], d[2]] }) %}
 
-# Abbreviated duration: "1w", "3d", "2h", "30m" (m=month), "1y"
+# Abbreviated duration: "1w", "3d", "2h", "30m" (m=minute), "1mo" (mo=month), "1y"
 abbreviatedDuration -> %abbreviatedDuration {% d => {
-  const match = d[0].value.match(/^(\d+)([wdhsmy])$/);
+  const match = d[0].value.match(/^(\d+)(mo|w|d|h|m|s|y)$/);
   if (!match) return null;
   const value = parseInt(match[1], 10);
-  // Note: 'm' is month (as per test expectations), not minute
-  const unitMap: Record<string, string> = { w: 'week', d: 'day', h: 'hour', m: 'month', s: 'second', y: 'year' };
+  // 'm' = minute, 'mo' = month
+  const unitMap: Record<string, string> = { w: 'week', d: 'day', h: 'hour', m: 'minute', mo: 'month', s: 'second', y: 'year' };
   return makeDuration(value, unitMap[match[2]]);
 } %}
 

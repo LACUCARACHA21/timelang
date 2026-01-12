@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parse, FuzzyResult, DateResult, SpanResult } from '../src/index';
+import { parse, parseDate, parseSpan, FuzzyResult, DateResult, SpanResult } from '../src/index';
 
 // Fixed reference date for deterministic tests
 const referenceDate = new Date('2025-01-15T12:00:00.000Z');
@@ -535,6 +535,46 @@ describe('Fuzzy Period Parsing', () => {
       expect(result.type).toBe('fuzzy');
       expect(result.start.getUTCMonth()).toBe(9); // October
       expect(result.end.getUTCMonth()).toBe(11); // December
+    });
+  });
+
+  describe('parseDate with fuzzy results', () => {
+    it('parseDate returns start of period for "Q1 2025"', () => {
+      const date = parseDate('Q1 2025', { referenceDate });
+      expect(date).not.toBeNull();
+      expect(date?.toISOString()).toBe('2025-01-01T00:00:00.000Z');
+    });
+
+    it('parseDate returns start of period for "mid january"', () => {
+      const date = parseDate('mid january', { referenceDate });
+      expect(date).not.toBeNull();
+      expect(date?.getUTCMonth()).toBe(0);
+      expect(date?.getUTCDate()).toBeGreaterThanOrEqual(10);
+    });
+
+    it('parseDate returns start of period for "early 2025"', () => {
+      const date = parseDate('early 2025', { referenceDate });
+      expect(date).not.toBeNull();
+      expect(date?.getUTCFullYear()).toBe(2025);
+      expect(date?.getUTCMonth()).toBe(0);
+    });
+
+    it('parseDate returns start of period for "spring 2025"', () => {
+      const date = parseDate('spring 2025', { referenceDate });
+      expect(date).not.toBeNull();
+      expect(date?.getUTCFullYear()).toBe(2025);
+      expect(date?.getUTCMonth()).toBe(2); // March
+    });
+
+    it('parseSpan and parseDate both work with fuzzy, returning different values', () => {
+      const span = parseSpan('Q1 2025', { referenceDate });
+      const date = parseDate('Q1 2025', { referenceDate });
+
+      expect(span).not.toBeNull();
+      expect(date).not.toBeNull();
+      expect(span?.start.toISOString()).toBe(date?.toISOString());
+      expect(span?.end.getUTCMonth()).toBe(2); // March
+      expect(span?.end.getUTCDate()).toBe(31);
     });
   });
 });
