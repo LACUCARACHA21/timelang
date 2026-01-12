@@ -3,8 +3,8 @@ import {
   getLastWeekday,
   getThisWeekday,
 } from '../utils/weekday';
+import { WEEKDAY_MAP } from '../utils/constants';
 import type { ASTNode, RequiredParseOptions } from '../parser';
-import {WEEKDAY_MAP} from "../utils/constants";
 
 interface TimeInfo {
   hour?: number;

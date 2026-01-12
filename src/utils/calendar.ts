@@ -99,8 +99,6 @@ export function getModifiedPeriod(
 
   switch (modifier) {
     case 'early':
-    case 'beginning':
-    case 'start':
       return {
         start,
         end: new Date(start.getTime() + third),
@@ -112,7 +110,6 @@ export function getModifiedPeriod(
         end: new Date(start.getTime() + 2 * third),
       };
     case 'late':
-    case 'end':
       return {
         start: new Date(start.getTime() + 2 * third),
         end,

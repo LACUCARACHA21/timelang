@@ -26,7 +26,7 @@ function durationToMs(value: number, unit: string): number {
     case 'year':
       return value * MS_PER_YEAR;
     default:
-      return value * MS_PER_DAY;
+      return 0;
   }
 }
 
