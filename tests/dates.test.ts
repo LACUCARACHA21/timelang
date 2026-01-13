@@ -56,8 +56,8 @@ describe('Single Date Parsing', () => {
       expectDate('tuesday', utc(2025, 1, 21));
     });
 
-    it('should parse "wednesday" as next Wednesday', () => {
-      expectDate('wednesday', utc(2025, 1, 22)); // Not today, next week
+    it('should parse "wednesday" as today when reference is Wednesday', () => {
+      expectDate('wednesday', utc(2025, 1, 15)); // Today if same day
     });
 
     it('should parse "thursday" as next Thursday', () => {

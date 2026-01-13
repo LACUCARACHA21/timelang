@@ -155,9 +155,41 @@ function parseWordNumber(word: string): number {
     'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
     'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14, 'fifteen': 15,
     'sixteen': 16, 'seventeen': 17, 'eighteen': 18, 'nineteen': 19, 'twenty': 20,
+    'twenty-one': 21, 'twenty-two': 22, 'twenty-three': 23, 'twenty-four': 24, 'twenty-five': 25,
+    'twenty-six': 26, 'twenty-seven': 27, 'twenty-eight': 28, 'twenty-nine': 29,
+    'thirty': 30, 'forty': 40, 'fifty': 50, 'sixty': 60,
+    'seventy': 70, 'eighty': 80, 'ninety': 90, 'hundred': 100,
     'couple': 2,
   };
   return map[word.toLowerCase()] ?? 1;
+}
+
+// Parse two word numbers like "twenty four" or "a couple"
+function parseTwoWordNumber(first: string, second: string): number {
+  const f = first.toLowerCase();
+  const s = second.toLowerCase();
+
+  // Handle compound tens like "twenty four" (without hyphen)
+  const tensMap: Record<string, number> = {
+    'twenty': 20, 'thirty': 30, 'forty': 40, 'fifty': 50,
+    'sixty': 60, 'seventy': 70, 'eighty': 80, 'ninety': 90,
+  };
+  const onesMap: Record<string, number> = {
+    'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+    'six': 6, 'seven': 7, 'eight': 8, 'nine': 9,
+  };
+
+  if (tensMap[f] && onesMap[s]) {
+    return tensMap[f] + onesMap[s];
+  }
+
+  // Handle "a/an couple" (use second word's value)
+  if ((f === 'a' || f === 'an') && s === 'couple') {
+    return 2;
+  }
+
+  // Default: use second word's value (for patterns like "a couple")
+  return parseWordNumber(s);
 }
 
 function parseOrdinal(ord: string): number {
@@ -588,7 +620,11 @@ fuzzy -> quarter {% d => makeFuzzy({ period: 'quarter', quarter: parseQuarter(d[
 
 # Duration expressions: "2 weeks", "30 days", "two hours", "1w 3d"
 duration -> number _ unit {% d => makeDuration(d[0], d[2]) %}
+          | number %dash unit {% d => makeDuration(d[0], d[2]) %}
           | wordNumber _ unit {% d => makeDuration(parseWordNumber(d[0]), d[2]) %}
+          | wordNumber _ wordNumber _ unit {% d => makeDuration(parseTwoWordNumber(d[0], d[2]), d[4]) %}
+          | wordNumber _ ofConnector _ unit {% d => makeDuration(parseWordNumber(d[0]), d[4]) %}
+          | wordNumber _ wordNumber _ ofConnector _ unit {% d => makeDuration(parseTwoWordNumber(d[0], d[2]), d[6]) %}
           | abbreviatedDuration {% d => d[0] %}
           | halfWord _ wordNumber _ unit {% d => {
   const word = d[2].toLowerCase();

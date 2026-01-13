@@ -1,4 +1,8 @@
-export function getNextWeekday(weekday: number, referenceDate: Date): Date {
+export function getNextWeekday(
+  weekday: number,
+  referenceDate: Date,
+  strictNext: boolean = false
+): Date {
   const result = new Date(
     Date.UTC(
       referenceDate.getUTCFullYear(),
@@ -8,8 +12,14 @@ export function getNextWeekday(weekday: number, referenceDate: Date): Date {
   );
   const currentDay = result.getUTCDay();
   let daysToAdd = weekday - currentDay;
-  if (daysToAdd <= 0) {
-    daysToAdd += 7;
+  if (strictNext) {
+    if (daysToAdd <= 0) {
+      daysToAdd += 7;
+    }
+  } else {
+    if (daysToAdd < 0) {
+      daysToAdd += 7;
+    }
   }
   result.setUTCDate(result.getUTCDate() + daysToAdd);
   return result;

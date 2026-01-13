@@ -119,7 +119,7 @@ function convertWeekday(
   } else {
     switch (node.relative) {
       case 'next':
-        date = getNextWeekday(weekdayNum, ref);
+        date = getNextWeekday(weekdayNum, ref, true);
         break;
       case 'last':
         date = getLastWeekday(weekdayNum, ref);
@@ -128,7 +128,7 @@ function convertWeekday(
         date = getThisWeekday(weekdayNum, ref, opts.weekStartsOn);
         break;
       default:
-        date = getNextWeekday(weekdayNum, ref);
+        date = getNextWeekday(weekdayNum, ref, false);
     }
   }
 
@@ -202,8 +202,23 @@ function convertMonthDay(
         year++;
       }
     }
-  } else if (node.year === undefined && month < ref.getUTCMonth()) {
-    year++;
+  } else if (node.year === undefined) {
+    const currentMonth = ref.getUTCMonth();
+    if (node.monthOnly) {
+      const monthsToFuture = month >= currentMonth ? month - currentMonth : 12 - currentMonth + month;
+      const monthsToPast = month <= currentMonth ? currentMonth - month : currentMonth + 12 - month;
+      if (monthsToPast < monthsToFuture) {
+        if (month > currentMonth) {
+          year--;
+        }
+      } else if (monthsToFuture < monthsToPast) {
+        if (month < currentMonth) {
+          year++;
+        }
+      }
+    } else if (month < currentMonth) {
+      year++;
+    }
   }
 
   const date = new Date(Date.UTC(year, month, node.day as number));

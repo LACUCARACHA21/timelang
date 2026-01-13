@@ -421,6 +421,8 @@ const ANCHOR_PATTERNS = [
   /\b(\d{1,2}(?:am|pm))\b/gi,
   // Number + unit patterns (e.g., "2 weeks", "3 days")
   /\b(\d+\s*(?:day|days|week|weeks|month|months|year|years|hour|hours|minute|minutes|second|seconds|hr|hrs|min|mins|sec|secs|wk|wks|mo|mos|yr|yrs))\b/gi,
+  // Hyphenated number-unit patterns (e.g., "52-week", "30-day")
+  /\b(\d+-(?:day|week|month|year|hour|minute|second))\b/gi,
   // Abbreviated durations (e.g., "2w", "3d")
   /\b(\d+(?:mo|w|d|h|m|s|y))\b/gi,
   // Ordinals
@@ -439,6 +441,12 @@ const ANCHOR_PATTERNS = [
   /\b(ytd)\b/gi,
   // ISO dates
   /\b(\d{4}-\d{2}-\d{2})\b/g,
+  // Standalone 4-digit years (1900-2099)
+  /\b(19\d{2}|20\d{2})\b/g,
+  // Word numbers that start durations (e.g., "five years", "ten weeks")
+  /\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred)\b/gi,
+  // "a" or "an" before units (e.g., "a week", "an hour", "a couple")
+  /\b(a|an)\s+(week|month|year|day|hour|minute|second|couple)\b/gi,
 ];
 
 // Words that are ambiguous and need context to be dates

@@ -45,8 +45,9 @@ const lexer = moo.compile({
   // Keywords - match words and normalize to lowercase
   // Using a regex to match any word, then checking against known keywords
   // The transform function in moo.keywords makes matching case-insensitive
+  // Include hyphen for compound words like "twenty-four"
   word: {
-    match: /[a-zA-Z][a-zA-Z0-9#]*/,
+    match: /[a-zA-Z][a-zA-Z0-9#-]*/,
     type: moo.keywords({
       // Time words - each gets its own type for grammar disambiguation
       kw_today: ['today'],
@@ -121,6 +122,9 @@ const lexer = moo.compile({
       wordNumber: [
         'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
         'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty',
+        'twenty-one', 'twenty-two', 'twenty-three', 'twenty-four', 'twenty-five',
+        'twenty-six', 'twenty-seven', 'twenty-eight', 'twenty-nine',
+        'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety', 'hundred',
         'a', 'an', 'couple',
       ],
       // Months - full names
