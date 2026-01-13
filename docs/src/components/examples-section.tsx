@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { ExampleCard } from './example-card'
 
 const EXAMPLE_CARDS = [
@@ -160,6 +161,9 @@ const EXAMPLE_CARDS = [
 ]
 
 export function ExamplesSection() {
+  const [expanded, setExpanded] = useState(false)
+  const visibleCards = expanded ? EXAMPLE_CARDS : EXAMPLE_CARDS.slice(0, 6)
+
   return (
     <section className="py-10">
       <div className="max-w-3xl mx-auto mb-8">
@@ -168,11 +172,26 @@ export function ExamplesSection() {
           list.
         </p>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm max-w-4xl mx-auto">
-        {EXAMPLE_CARDS.map((card) => (
-          <ExampleCard key={card.title} {...card} />
-        ))}
+      <div className="relative">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm max-w-4xl mx-auto">
+          {visibleCards.map((card) => (
+            <ExampleCard key={card.title} {...card} />
+          ))}
+        </div>
+        {!expanded && (
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent pointer-events-none" />
+        )}
       </div>
+      {!expanded && (
+        <div className="flex justify-center mt-4">
+          <button
+            onClick={() => setExpanded(true)}
+            className="text-sm text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
+          >
+            Show {EXAMPLE_CARDS.length - 6} more categories ↓
+          </button>
+        </div>
+      )}
     </section>
   )
 }
