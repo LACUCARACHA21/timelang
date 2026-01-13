@@ -30,6 +30,19 @@ function getDefaultOptions(options?: ParseOptions): RequiredParseOptions {
   };
 }
 
+function getWeekdayNumber(weekday: string): number {
+  const map: Record<string, number> = {
+    sunday: 0, sun: 0,
+    monday: 1, mon: 1,
+    tuesday: 2, tue: 2, tues: 2,
+    wednesday: 3, wed: 3,
+    thursday: 4, thu: 4, thur: 4, thurs: 4,
+    friday: 5, fri: 5,
+    saturday: 6, sat: 6,
+  };
+  return map[weekday] ?? 0;
+}
+
 function convertASTToResult(
   ast: ASTNode,
   opts: RequiredParseOptions,
@@ -65,7 +78,8 @@ function convertASTToResult(
 
     case 'duration': {
       const duration = convertDurationNode(expression);
-      return { type: 'duration', duration, title };
+      const approximate = expression.approximate === true;
+      return { type: 'duration', duration, title, approximate };
     }
 
     case 'span': {
@@ -240,6 +254,17 @@ function convertASTToResult(
           const dayOfWeek = resultDate.getUTCDay();
           if (dayOfWeek !== 0 && dayOfWeek !== 6) {
             daysToAdd--;
+          }
+        }
+      } else if (durationUnit === 'weekdayoccurrence') {
+        const weekdayStr = (expression.weekday as string).toLowerCase().replace(/s$/, '');
+        const targetDay = getWeekdayNumber(weekdayStr);
+        resultDate = new Date(Date.UTC(baseDate.getUTCFullYear(), baseDate.getUTCMonth(), baseDate.getUTCDate()));
+        let occurrences = durationValue;
+        while (occurrences > 0) {
+          resultDate.setUTCDate(resultDate.getUTCDate() + direction);
+          if (resultDate.getUTCDay() === targetDay) {
+            occurrences--;
           }
         }
       } else {

@@ -253,6 +253,28 @@ function getBasePeriodDates(
     return { start, end };
   }
 
+  if (node.period === 'ytd') {
+    const start = new Date(Date.UTC(ref.getUTCFullYear(), 0, 1));
+    const end = new Date(ref);
+    return { start, end };
+  }
+
+  if (node.period === 'weekOfMonth' && node.week !== undefined && node.month !== undefined) {
+    const targetMonth = (node.month as number) - 1;
+    const weekNum = node.week as number;
+    const targetYear = (node.year as number) ?? ref.getUTCFullYear();
+
+    const monthStart = new Date(Date.UTC(targetYear, targetMonth, 1));
+    const weekStart = opts.weekStartsOn === 'monday' ? 1 : 0;
+    const firstDay = monthStart.getUTCDay();
+    const daysToFirstWeekStart = (weekStart - firstDay + 7) % 7;
+    const firstWeekStart = new Date(monthStart.getTime() + daysToFirstWeekStart * MS_PER_DAY);
+
+    const start = new Date(firstWeekStart.getTime() + (weekNum - 1) * MS_PER_WEEK);
+    const end = new Date(start.getTime() + 6 * MS_PER_DAY);
+    return { start, end };
+  }
+
   return {
     start: new Date(Date.UTC(year, 0, 1)),
     end: new Date(Date.UTC(year, 11, 31)),

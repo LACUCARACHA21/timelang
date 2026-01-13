@@ -126,9 +126,10 @@ const lexer = moo.compile({
         'july', 'august', 'september', 'october', 'november', 'december',
         'jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug', 'sep', 'sept', 'oct', 'nov', 'dec',
       ],
-      // Weekdays
+      // Weekdays (including plurals for patterns like "3 fridays ago")
       weekday: [
         'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
+        'mondays', 'tuesdays', 'wednesdays', 'thursdays', 'fridays', 'saturdays', 'sundays',
         'mon', 'tue', 'tues', 'wed', 'thu', 'thur', 'thurs', 'fri', 'sat', 'sun',
       ],
       // Ago keyword for relative dates
@@ -146,6 +147,8 @@ const lexer = moo.compile({
       kw_eod: ['eod'],
       kw_cob: ['cob'],
       kw_close: ['close'],
+      // Year-to-date
+      kw_ytd: ['ytd'],
     }), // Keywords are matched against lowercase input
   },
 

@@ -392,5 +392,21 @@ describe('Natural Language Date Patterns', () => {
     it('should parse "midnight on Saturday"', () => {
       expectDate('midnight on Saturday', utc(2025, 1, 18, 0, 0));
     });
+
+    it('should parse "friday noon"', () => {
+      expectDate('friday noon', utc(2025, 1, 17, 12, 0));
+    });
+
+    it('should parse "friday midnight"', () => {
+      expectDate('friday midnight', utc(2025, 1, 17, 0, 0));
+    });
+
+    it('should parse "tomorrow noon"', () => {
+      expectDate('tomorrow noon', utc(2025, 1, 16, 12, 0));
+    });
+
+    it('should parse "next monday noon"', () => {
+      expectDate('next monday noon', utc(2025, 1, 20, 12, 0));
+    });
   });
 });
