@@ -30,8 +30,8 @@ importers:
         specifier: ^4.1.18
         version: 4.1.18
       timelang:
-        specifier: ^0.3.1
-        version: 0.3.1
+        specifier: ^0.3.2
+        version: 0.3.2
     devDependencies:
       '@eslint/js':
         specifier: ^9.39.1
@@ -1232,8 +1232,8 @@ packages:
     resolution: {integrity: sha512-g9ljZiwki/LfxmQADO3dEY1CbpmXT5Hm2fJ+QaGKwSXUylMybePR7/67YW7jOrrvjEgL1Fmz5kzyAjWVWLlucg==}
     engines: {node: '>=6'}
 
-  timelang@0.3.1:
-    resolution: {integrity: sha512-GlPslO1Bhhlg2aadKo/+u49S3JdjNq2Fv5EoDLY/pyGMglW1j58WpuFosPQizsGQKdi4u2Sr6c3JLxZVN9K/xA==}
+  timelang@0.3.2:
+    resolution: {integrity: sha512-u18paI2oqzX5p4N/PhYbR0GGfrp0Jbp6fu+90Q5bMVNZo8bnShuoNS2IMceotjfwTepPdgItjMvAEK9JFiKfzw==}
 
   tinyglobby@0.2.15:
     resolution: {integrity: sha512-j2Zq4NyQYG5XMST4cbs02Ak8iJUdxRM0XI5QyxXuZOzKOINmWurp3smXu3y5wDcJrptwpSjgXHzIQxR0omXljQ==}
@@ -2404,7 +2404,7 @@ snapshots:
 
   tapable@2.3.0: {}
 
-  timelang@0.3.1:
+  timelang@0.3.2:
     dependencies:
       moo: 0.5.2
       nearley: 2.20.1
