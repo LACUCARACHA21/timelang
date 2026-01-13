@@ -20,6 +20,7 @@ declare var half: any;
 declare var slash: any;
 declare var other: any;
 declare var monthDayCompact: any;
+declare var kw_ytd: any;
 declare var comma: any;
 declare var abbreviatedDuration: any;
 declare var unit: any;
@@ -528,6 +529,10 @@ const grammar: Grammar = {
     {"name": "relativeDate", "symbols": ["wordNumber", "_", "fortnightKeyword", "_", "agoConnector"], "postprocess": d => makeRelativeDate('past', makeDuration(parseWordNumber(d[0]) * 2, 'week'))},
     {"name": "relativeDate", "symbols": ["number", "_", "fortnightKeyword", "_", "agoConnector"], "postprocess": d => makeRelativeDate('past', makeDuration(d[0] * 2, 'week'))},
     {"name": "relativeDate", "symbols": ["fortnightKeyword", "_", "agoConnector"], "postprocess": d => makeRelativeDate('past', makeDuration(2, 'week'))},
+    {"name": "relativeDate", "symbols": ["number", "_", "weekday", "_", "fromConnector", "_", "now"], "postprocess": d => ({ ...makeRelativeDate('future', makeDuration(d[0], 'weekdayOccurrence')), weekday: d[2] })},
+    {"name": "relativeDate", "symbols": ["wordNumber", "_", "weekday", "_", "fromConnector", "_", "now"], "postprocess": d => ({ ...makeRelativeDate('future', makeDuration(parseWordNumber(d[0]), 'weekdayOccurrence')), weekday: d[2] })},
+    {"name": "relativeDate", "symbols": ["number", "_", "weekday", "_", "agoConnector"], "postprocess": d => ({ ...makeRelativeDate('past', makeDuration(d[0], 'weekdayOccurrence')), weekday: d[2] })},
+    {"name": "relativeDate", "symbols": ["wordNumber", "_", "weekday", "_", "agoConnector"], "postprocess": d => ({ ...makeRelativeDate('past', makeDuration(parseWordNumber(d[0]), 'weekdayOccurrence')), weekday: d[2] })},
     {"name": "fuzzy", "symbols": ["quarter"], "postprocess": d => makeFuzzy({ period: 'quarter', quarter: parseQuarter(d[0].value) })},
     {"name": "fuzzy", "symbols": ["quarter", "_", "year"], "postprocess": d => makeFuzzy({ period: 'quarter', quarter: parseQuarter(d[0].value), year: d[2] })},
     {"name": "fuzzy", "symbols": ["half"], "postprocess": d => makeFuzzy({ period: 'half', half: parseHalf(d[0].value) })},
@@ -556,6 +561,12 @@ const grammar: Grammar = {
     {"name": "fuzzy", "symbols": ["beginningConnector", "_", "ofConnector", "_", "unit"], "postprocess": d => makeFuzzy({ period: d[4], modifier: 'beginning' })},
     {"name": "fuzzy", "symbols": ["startConnector", "_", "ofConnector", "_", "unit"], "postprocess": d => makeFuzzy({ period: d[4], modifier: 'start' })},
     {"name": "fuzzy", "symbols": ["middleConnector", "_", "ofConnector", "_", "unit"], "postprocess": d => makeFuzzy({ period: d[4], modifier: 'middle' })},
+    {"name": "fuzzy", "symbols": ["endConnector", "_", "ofConnector", "_", "nextRelative", "_", "unit"], "postprocess": d => makeFuzzy({ period: d[6], modifier: 'end', relative: 'next' })},
+    {"name": "fuzzy", "symbols": ["endConnector", "_", "ofConnector", "_", "lastRelative", "_", "unit"], "postprocess": d => makeFuzzy({ period: d[6], modifier: 'end', relative: 'last' })},
+    {"name": "fuzzy", "symbols": ["startConnector", "_", "ofConnector", "_", "nextRelative", "_", "unit"], "postprocess": d => makeFuzzy({ period: d[6], modifier: 'start', relative: 'next' })},
+    {"name": "fuzzy", "symbols": ["startConnector", "_", "ofConnector", "_", "lastRelative", "_", "unit"], "postprocess": d => makeFuzzy({ period: d[6], modifier: 'start', relative: 'last' })},
+    {"name": "fuzzy", "symbols": ["beginningConnector", "_", "ofConnector", "_", "nextRelative", "_", "unit"], "postprocess": d => makeFuzzy({ period: d[6], modifier: 'beginning', relative: 'next' })},
+    {"name": "fuzzy", "symbols": ["beginningConnector", "_", "ofConnector", "_", "lastRelative", "_", "unit"], "postprocess": d => makeFuzzy({ period: d[6], modifier: 'beginning', relative: 'last' })},
     {"name": "fuzzy", "symbols": ["beginningConnector", "_", "ofConnector", "_", "month"], "postprocess": d => makeFuzzy({ period: 'month', month: d[4], modifier: 'beginning' })},
     {"name": "fuzzy", "symbols": ["beginningConnector", "_", "ofConnector", "_", "year"], "postprocess": d => makeFuzzy({ period: 'year', year: d[4], modifier: 'beginning' })},
     {"name": "fuzzy", "symbols": ["startConnector", "_", "ofConnector", "_", "month"], "postprocess": d => makeFuzzy({ period: 'month', month: d[4], modifier: 'start' })},
@@ -637,6 +648,8 @@ const grammar: Grammar = {
     {"name": "fuzzy", "symbols": ["weekKeyword", "_", "number"], "postprocess": d => makeFuzzy({ period: 'weekNumber', weekNumber: d[2] })},
     {"name": "fuzzy", "symbols": ["weekKeyword", "_", "number", "_", "year"], "postprocess": d => makeFuzzy({ period: 'weekNumber', weekNumber: d[2], year: d[4] })},
     {"name": "fuzzy", "symbols": ["theConnector", "_", "weekKeyword", "_", "ofConnector", "_", "date"], "postprocess": d => makeFuzzy({ period: 'weekOf', baseDate: d[6] })},
+    {"name": "fuzzy", "symbols": ["ordinalWord", "_", "weekKeyword", "_", "ofConnector", "_", "month"], "postprocess": d => makeFuzzy({ period: 'weekOfMonth', week: parseOrdinalWord(d[0]), month: d[6] })},
+    {"name": "fuzzy", "symbols": [(lexer.has("kw_ytd") ? {type: "kw_ytd"} : kw_ytd)], "postprocess": d => makeFuzzy({ period: 'ytd' })},
     {"name": "duration", "symbols": ["number", "_", "unit"], "postprocess": d => makeDuration(d[0], d[2])},
     {"name": "duration", "symbols": ["wordNumber", "_", "unit"], "postprocess": d => makeDuration(parseWordNumber(d[0]), d[2])},
     {"name": "duration", "symbols": ["abbreviatedDuration"], "postprocess": d => d[0]},
@@ -657,6 +670,8 @@ const grammar: Grammar = {
     {"name": "duration", "symbols": ["duration", "_", (lexer.has("comma") ? {type: "comma"} : comma), "_", "duration"], "postprocess": d => ({ ...d[0], combined: [d[0], d[4]] })},
     {"name": "duration", "symbols": ["duration", "_", (lexer.has("comma") ? {type: "comma"} : comma), "_", "andConnector", "_", "duration"], "postprocess": d => ({ ...d[0], combined: [d[0], d[6]] })},
     {"name": "duration", "symbols": ["duration", "_", "duration"], "postprocess": d => ({ ...d[0], combined: [d[0], d[2]] })},
+    {"name": "duration", "symbols": ["aroundConnector", "_", "duration"], "postprocess": d => ({ ...d[2], approximate: true })},
+    {"name": "duration", "symbols": ["aboutConnector", "_", "duration"], "postprocess": d => ({ ...d[2], approximate: true })},
     {"name": "abbreviatedDuration", "symbols": [(lexer.has("abbreviatedDuration") ? {type: "abbreviatedDuration"} : abbreviatedDuration)], "postprocess":  d => {
           const match = d[0].value.match(/^(\d+)(mo|w|d|h|m|s|y)$/);
           if (!match) return null;
@@ -768,6 +783,7 @@ const grammar: Grammar = {
     {"name": "dateWithTime", "symbols": ["time", "_", "date"], "postprocess": d => ({ ...d[2], time: d[0] })},
     {"name": "dateWithTime", "symbols": ["timeWord", "_", "date"], "postprocess": d => ({ ...d[2], time: { special: d[0] } })},
     {"name": "dateWithTime", "symbols": ["date", "_", "time"], "postprocess": d => ({ ...d[0], time: d[2] })},
+    {"name": "dateWithTime", "symbols": ["date", "_", "timeWord"], "postprocess": d => ({ ...d[0], time: { special: d[2] } })},
     {"name": "dateWithTime", "symbols": ["timeWord", "_", "onConnector", "_", "date"], "postprocess": d => ({ ...d[4], time: { special: d[0] } })},
     {"name": "dateWithTime", "symbols": ["timeWord", "_", "onConnector", "_", "weekday"], "postprocess": d => makeDate({ weekday: d[4], time: { special: d[0] } })},
     {"name": "dateWithTime", "symbols": ["midnight", "_", "tonightKeyword"], "postprocess": d => makeDate({ special: 'tonight', time: { special: 'midnight' } })},

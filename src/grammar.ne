@@ -453,6 +453,10 @@ relativeDate -> duration _ agoConnector {% d => makeRelativeDate('past', d[0]) %
               | wordNumber _ fortnightKeyword _ agoConnector {% d => makeRelativeDate('past', makeDuration(parseWordNumber(d[0]) * 2, 'week')) %}
               | number _ fortnightKeyword _ agoConnector {% d => makeRelativeDate('past', makeDuration(d[0] * 2, 'week')) %}
               | fortnightKeyword _ agoConnector {% d => makeRelativeDate('past', makeDuration(2, 'week')) %}
+              | number _ weekday _ fromConnector _ now {% d => ({ ...makeRelativeDate('future', makeDuration(d[0], 'weekdayOccurrence')), weekday: d[2] }) %}
+              | wordNumber _ weekday _ fromConnector _ now {% d => ({ ...makeRelativeDate('future', makeDuration(parseWordNumber(d[0]), 'weekdayOccurrence')), weekday: d[2] }) %}
+              | number _ weekday _ agoConnector {% d => ({ ...makeRelativeDate('past', makeDuration(d[0], 'weekdayOccurrence')), weekday: d[2] }) %}
+              | wordNumber _ weekday _ agoConnector {% d => ({ ...makeRelativeDate('past', makeDuration(parseWordNumber(d[0]), 'weekdayOccurrence')), weekday: d[2] }) %}
 
 # Fuzzy period expressions: "Q1", "early march", "end of january"
 # Note: month non-terminal already returns a number from parseMonth, so don't call parseMonth again
@@ -484,6 +488,12 @@ fuzzy -> quarter {% d => makeFuzzy({ period: 'quarter', quarter: parseQuarter(d[
        | beginningConnector _ ofConnector _ unit {% d => makeFuzzy({ period: d[4], modifier: 'beginning' }) %}
        | startConnector _ ofConnector _ unit {% d => makeFuzzy({ period: d[4], modifier: 'start' }) %}
        | middleConnector _ ofConnector _ unit {% d => makeFuzzy({ period: d[4], modifier: 'middle' }) %}
+       | endConnector _ ofConnector _ nextRelative _ unit {% d => makeFuzzy({ period: d[6], modifier: 'end', relative: 'next' }) %}
+       | endConnector _ ofConnector _ lastRelative _ unit {% d => makeFuzzy({ period: d[6], modifier: 'end', relative: 'last' }) %}
+       | startConnector _ ofConnector _ nextRelative _ unit {% d => makeFuzzy({ period: d[6], modifier: 'start', relative: 'next' }) %}
+       | startConnector _ ofConnector _ lastRelative _ unit {% d => makeFuzzy({ period: d[6], modifier: 'start', relative: 'last' }) %}
+       | beginningConnector _ ofConnector _ nextRelative _ unit {% d => makeFuzzy({ period: d[6], modifier: 'beginning', relative: 'next' }) %}
+       | beginningConnector _ ofConnector _ lastRelative _ unit {% d => makeFuzzy({ period: d[6], modifier: 'beginning', relative: 'last' }) %}
        | beginningConnector _ ofConnector _ month {% d => makeFuzzy({ period: 'month', month: d[4], modifier: 'beginning' }) %}
        | beginningConnector _ ofConnector _ year {% d => makeFuzzy({ period: 'year', year: d[4], modifier: 'beginning' }) %}
        | startConnector _ ofConnector _ month {% d => makeFuzzy({ period: 'month', month: d[4], modifier: 'start' }) %}
@@ -565,6 +575,8 @@ fuzzy -> quarter {% d => makeFuzzy({ period: 'quarter', quarter: parseQuarter(d[
        | weekKeyword _ number {% d => makeFuzzy({ period: 'weekNumber', weekNumber: d[2] }) %}
        | weekKeyword _ number _ year {% d => makeFuzzy({ period: 'weekNumber', weekNumber: d[2], year: d[4] }) %}
        | theConnector _ weekKeyword _ ofConnector _ date {% d => makeFuzzy({ period: 'weekOf', baseDate: d[6] }) %}
+       | ordinalWord _ weekKeyword _ ofConnector _ month {% d => makeFuzzy({ period: 'weekOfMonth', week: parseOrdinalWord(d[0]), month: d[6] }) %}
+       | %kw_ytd {% d => makeFuzzy({ period: 'ytd' }) %}
 
 # Duration expressions: "2 weeks", "30 days", "two hours", "1w 3d"
 duration -> number _ unit {% d => makeDuration(d[0], d[2]) %}
@@ -587,6 +599,8 @@ duration -> number _ unit {% d => makeDuration(d[0], d[2]) %}
           | duration _ %comma _ duration {% d => ({ ...d[0], combined: [d[0], d[4]] }) %}
           | duration _ %comma _ andConnector _ duration {% d => ({ ...d[0], combined: [d[0], d[6]] }) %}
           | duration _ duration {% d => ({ ...d[0], combined: [d[0], d[2]] }) %}
+          | aroundConnector _ duration {% d => ({ ...d[2], approximate: true }) %}
+          | aboutConnector _ duration {% d => ({ ...d[2], approximate: true }) %}
 
 # Abbreviated duration: "1w", "3d", "2h", "30m" (m=minute), "1mo" (mo=month), "1y"
 abbreviatedDuration -> %abbreviatedDuration {% d => {
@@ -737,6 +751,7 @@ dateWithTime -> date _ atConnector _ time {% d => ({ ...d[0], time: d[4] }) %}
               | time _ date {% d => ({ ...d[2], time: d[0] }) %}
               | timeWord _ date {% d => ({ ...d[2], time: { special: d[0] } }) %}
               | date _ time {% d => ({ ...d[0], time: d[2] }) %}
+              | date _ timeWord {% d => ({ ...d[0], time: { special: d[2] } }) %}
               | timeWord _ onConnector _ date {% d => ({ ...d[4], time: { special: d[0] } }) %}
               | timeWord _ onConnector _ weekday {% d => makeDate({ weekday: d[4], time: { special: d[0] } }) %}
               | midnight _ tonightKeyword {% d => makeDate({ special: 'tonight', time: { special: 'midnight' } }) %}
