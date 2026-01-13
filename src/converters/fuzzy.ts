@@ -1,4 +1,4 @@
-import { MS_PER_DAY } from '../utils/constants';
+import { MS_PER_DAY, MS_PER_WEEK, WEEKDAY_MAP } from '../utils/constants';
 import {
   getQuarterDates,
   getHalfDates,
@@ -8,12 +8,138 @@ import {
 } from '../utils/calendar';
 import type { ASTNode, RequiredParseOptions } from '../parser';
 
+function getWeekendDates(ref: Date, relative: string, opts: RequiredParseOptions): DateRange {
+  const currentDay = ref.getUTCDay();
+
+  // Calculate offset to this coming Saturday
+  const saturdayOffset = (6 - currentDay + 7) % 7;
+  let saturday = new Date(
+    Date.UTC(
+      ref.getUTCFullYear(),
+      ref.getUTCMonth(),
+      ref.getUTCDate() + saturdayOffset
+    )
+  );
+
+  if (relative === 'next') {
+    // "next weekend" means the weekend after this weekend
+    saturday = new Date(saturday.getTime() + MS_PER_WEEK);
+  } else if (relative === 'last') {
+    // "last weekend" means the most recent past weekend
+    if (currentDay === 6 || currentDay === 0) {
+      // Currently on weekend, go back one more week
+      saturday = new Date(saturday.getTime() - MS_PER_WEEK);
+    }
+    saturday = new Date(saturday.getTime() - MS_PER_WEEK);
+  }
+
+  const sunday = new Date(saturday.getTime() + MS_PER_DAY);
+  const sundayEnd = new Date(
+    Date.UTC(
+      sunday.getUTCFullYear(),
+      sunday.getUTCMonth(),
+      sunday.getUTCDate(),
+      23,
+      59
+    )
+  );
+
+  return { start: saturday, end: sundayEnd };
+}
+
+function getNightDates(ref: Date, relative: string | undefined, weekday: string | undefined): DateRange {
+  let baseDate = new Date(ref);
+
+  if (relative === 'last') {
+    baseDate = new Date(
+      Date.UTC(
+        ref.getUTCFullYear(),
+        ref.getUTCMonth(),
+        ref.getUTCDate() - 1
+      )
+    );
+  } else if (relative === 'tomorrow') {
+    baseDate = new Date(
+      Date.UTC(
+        ref.getUTCFullYear(),
+        ref.getUTCMonth(),
+        ref.getUTCDate() + 1
+      )
+    );
+  } else if (weekday) {
+    const targetDay = WEEKDAY_MAP[weekday.toLowerCase()];
+    if (targetDay !== undefined) {
+      const currentDay = ref.getUTCDay();
+      let daysToAdd = (targetDay - currentDay + 7) % 7;
+      if (daysToAdd === 0) {
+        daysToAdd = 7;
+      }
+      baseDate = new Date(
+        Date.UTC(
+          ref.getUTCFullYear(),
+          ref.getUTCMonth(),
+          ref.getUTCDate() + daysToAdd
+        )
+      );
+    }
+  }
+
+  const start = new Date(
+    Date.UTC(
+      baseDate.getUTCFullYear(),
+      baseDate.getUTCMonth(),
+      baseDate.getUTCDate(),
+      18,
+      0
+    )
+  );
+  const end = new Date(
+    Date.UTC(
+      baseDate.getUTCFullYear(),
+      baseDate.getUTCMonth(),
+      baseDate.getUTCDate(),
+      23,
+      59
+    )
+  );
+
+  return { start, end };
+}
+
 function getBasePeriodDates(
   node: ASTNode,
   opts: RequiredParseOptions,
   year: number
 ): DateRange {
   const ref = opts.referenceDate;
+
+  if (node.period === 'weekend') {
+    return getWeekendDates(ref, node.relative as string || 'this', opts);
+  }
+
+  if (node.period === 'tonight') {
+    return getNightDates(ref, undefined, undefined);
+  }
+
+  if (node.period === 'night') {
+    return getNightDates(ref, node.relative as string, node.weekday as string);
+  }
+
+  if (node.period === 'fortnight') {
+    const count = (node.count as number) || 1;
+    const relative = node.relative as string;
+    const twoWeeks = 14 * MS_PER_DAY;
+
+    if (relative === 'last') {
+      const end = new Date(ref);
+      const start = new Date(ref.getTime() - twoWeeks);
+      return { start, end };
+    }
+    // Default to next/future
+    const start = new Date(ref);
+    const end = new Date(ref.getTime() + count * twoWeeks);
+    return { start, end };
+  }
 
   if (node.period === 'quarter' && node.quarter) {
     return getQuarterDates(

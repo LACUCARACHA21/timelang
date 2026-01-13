@@ -152,6 +152,7 @@ function convertASTToResult(
     case 'fuzzy': {
       const { start, end } = convertFuzzyNode(expression, opts);
       const mod = expression.modifier as string | undefined;
+      const period = expression.period as string;
 
       if (mod === 'start' || mod === 'beginning') {
         const periodDates = convertFuzzyNodeWithoutModifier(expression, opts);
@@ -161,6 +162,12 @@ function convertASTToResult(
       if (mod === 'end') {
         const periodDates = convertFuzzyNodeWithoutModifier(expression, opts);
         return { type: 'date', date: periodDates.end, title };
+      }
+
+      // Weekend/night/tonight/fortnight are spans, not fuzzy periods
+      if (period === 'weekend' || period === 'night' || period === 'tonight' || period === 'fortnight') {
+        const duration = end.getTime() - start.getTime();
+        return { type: 'span', start, end, duration, title };
       }
 
       return { type: 'fuzzy', start, end, approximate: true, title };

@@ -213,6 +213,149 @@ function convertMonthDay(
   return date;
 }
 
+function convertOrdinalWeekdayOfMonth(
+  node: ASTNode,
+  opts: RequiredParseOptions
+): Date {
+  const ref = opts.referenceDate;
+  const ordinal = node.ordinalWeekday as number;
+  const weekdayName = (node.weekday as string).toLowerCase();
+  const weekdayNum = WEEKDAY_MAP[weekdayName] ?? 0;
+
+  let month: number;
+  let year: number;
+
+  if (node.monthFromRef) {
+    month = ref.getUTCMonth();
+    year = ref.getUTCFullYear();
+  } else if (node.nextMonth) {
+    month = ref.getUTCMonth() + 1;
+    year = ref.getUTCFullYear();
+    if (month > 11) {
+      month = 0;
+      year++;
+    }
+  } else {
+    month = typeof node.month === 'number' ? node.month - 1 : ref.getUTCMonth();
+    year = ref.getUTCFullYear();
+    // If month is before current month, assume next year
+    if (month < ref.getUTCMonth()) {
+      year++;
+    }
+  }
+
+  if (ordinal === -1) {
+    // Last weekday of month
+    const lastDay = new Date(Date.UTC(year, month + 1, 0));
+    let day = lastDay.getUTCDate();
+    let date = new Date(Date.UTC(year, month, day));
+    while (date.getUTCDay() !== weekdayNum) {
+      day--;
+      date = new Date(Date.UTC(year, month, day));
+    }
+    return date;
+  }
+
+  // Find the Nth weekday of the month
+  let count = 0;
+  for (let day = 1; day <= 31; day++) {
+    const date = new Date(Date.UTC(year, month, day));
+    if (date.getUTCMonth() !== month) {
+      break;
+    }
+    if (date.getUTCDay() === weekdayNum) {
+      count++;
+      if (count === ordinal) {
+        return date;
+      }
+    }
+  }
+
+  // If ordinal too high, return last occurrence
+  const lastDay = new Date(Date.UTC(year, month + 1, 0));
+  let day = lastDay.getUTCDate();
+  let date = new Date(Date.UTC(year, month, day));
+  while (date.getUTCDay() !== weekdayNum) {
+    day--;
+    date = new Date(Date.UTC(year, month, day));
+  }
+  return date;
+}
+
+function convertLastDayOfMonth(
+  node: ASTNode,
+  opts: RequiredParseOptions
+): Date {
+  const ref = opts.referenceDate;
+
+  let month: number;
+  let year: number;
+
+  if (node.monthFromRef) {
+    month = ref.getUTCMonth();
+    year = ref.getUTCFullYear();
+  } else if (node.nextMonth) {
+    month = ref.getUTCMonth() + 1;
+    year = ref.getUTCFullYear();
+    if (month > 11) {
+      month = 0;
+      year++;
+    }
+  } else {
+    month = typeof node.month === 'number' ? node.month - 1 : ref.getUTCMonth();
+    year = ref.getUTCFullYear();
+    if (month < ref.getUTCMonth()) {
+      year++;
+    }
+  }
+
+  // Last day of month
+  return new Date(Date.UTC(year, month + 1, 0));
+}
+
+function convertDayOnly(
+  node: ASTNode,
+  opts: RequiredParseOptions
+): Date {
+  const ref = opts.referenceDate;
+  const day = node.day as number;
+  const refDay = ref.getUTCDate();
+  const refMonth = ref.getUTCMonth();
+  const refYear = ref.getUTCFullYear();
+
+  // Check if the day is valid for this month
+  let month = refMonth;
+  let year = refYear;
+
+  // If the day has passed this month, use next month
+  if (day < refDay) {
+    month = refMonth + 1;
+    if (month > 11) {
+      month = 0;
+      year++;
+    }
+  }
+
+  // Create the date and check if it's valid for the target month
+  let date = new Date(Date.UTC(year, month, day));
+
+  // If the day overflowed (e.g., Feb 31 -> Mar 3), find the next valid month
+  while (date.getUTCDate() !== day) {
+    month++;
+    if (month > 11) {
+      month = 0;
+      year++;
+    }
+    date = new Date(Date.UTC(year, month, day));
+  }
+
+  if (node.time) {
+    applyTime(date, node.time as TimeInfo);
+  }
+
+  return date;
+}
+
 function convertRelativePeriod(
   node: ASTNode,
   opts: RequiredParseOptions
@@ -286,6 +429,11 @@ export function convertDateNode(
     return convertTimeOnly(node, opts);
   }
 
+  // ordinalWeekday check must come before weekday check
+  if (node.ordinalWeekday !== undefined && node.weekday !== undefined) {
+    return convertOrdinalWeekdayOfMonth(node, opts);
+  }
+
   if (node.weekday) {
     return convertWeekday(node, opts);
   }
@@ -296,6 +444,27 @@ export function convertDateNode(
 
   if (node.month !== undefined && node.day !== undefined) {
     return convertMonthDay(node, opts);
+  }
+
+  if (node.dayOnly && node.day !== undefined) {
+    return convertDayOnly(node, opts);
+  }
+
+  if (node.lastDayOfMonth) {
+    return convertLastDayOfMonth(node, opts);
+  }
+
+  if (node.dayOfMonth && node.nextMonth) {
+    // "first day of next month"
+    const ref = opts.referenceDate;
+    let month = ref.getUTCMonth() + 1;
+    let year = ref.getUTCFullYear();
+    if (month > 11) {
+      month = 0;
+      year++;
+    }
+    const day = node.ordinalWeekday as number || 1;
+    return new Date(Date.UTC(year, month, day));
   }
 
   if (node.relative && node.period) {

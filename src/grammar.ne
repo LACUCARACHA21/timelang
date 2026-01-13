@@ -42,14 +42,26 @@ interface FuzzyNode {
   quarter?: number;
   half?: number;
   year?: number;
+  month?: number;
   modifier?: 'early' | 'mid' | 'late' | 'beginning' | 'end' | 'start' | 'middle';
   season?: string;
+  relative?: 'next' | 'last' | 'this' | 'tomorrow';
+  weekday?: string;
+  count?: number;
 }
 
 interface RelativeNode {
   nodeType: 'relative';
   direction: 'past' | 'future';
   duration: DurationNode;
+}
+
+interface RelativeDateNode {
+  nodeType: 'relativeDate';
+  direction: 'past' | 'future';
+  duration: DurationNode;
+  baseDate?: DateNode;
+  time?: { hour: number; minute: number } | { special: string };
 }
 
 interface TitledNode {
@@ -99,6 +111,19 @@ const makeRelative = (direction: 'past' | 'future', duration: DurationNode): Rel
   nodeType: 'relative',
   direction,
   duration,
+});
+
+const makeRelativeDate = (
+  direction: 'past' | 'future',
+  duration: DurationNode,
+  baseDate?: DateNode,
+  time?: { hour: number; minute: number } | { special: string }
+): RelativeDateNode => ({
+  nodeType: 'relativeDate',
+  direction,
+  duration,
+  baseDate,
+  time,
 });
 
 const makeTitled = (title: string, expression: any, titleStart?: number, titleEnd?: number): TitledNode => ({
@@ -286,10 +311,16 @@ titleTextSimple -> titleWord {% d => d[0] %}
 expression -> range {% first %}
             | span {% first %}
             | relative {% first %}
+            | relativeDate {% first %}
+            | lastDayOfMonthExpr {% first %}
+            | date {% first %}
             | fuzzy {% first %}
             | forDuration {% first %}
             | duration {% first %}
-            | date {% first %}
+
+# Last day of month - special handling at expression level
+lastDayOfMonthExpr -> lastRelative _ dayUnit _ ofConnector _ month {% d => makeDate({ month: d[6], lastDayOfMonth: true }) %}
+                    | lastRelative _ dayUnit _ ofConnector _ theConnector _ monthUnit {% d => makeDate({ lastDayOfMonth: true, monthFromRef: true }) %}
 
 # Duration with "for" prefix: "for 2 weeks", "for a year"
 forDuration -> forConnector _ duration {% d => d[2] %}
@@ -382,6 +413,33 @@ relative -> lastRelative _ number _ unit {% d => makeRelative('past', makeDurati
           | inConnector _ theConnector _ comingRelative _ unit {% d => makeRelative('future', makeDuration(1, d[6])) %}
           | inConnector _ theConnector _ upcomingRelative _ unit {% d => makeRelative('future', makeDuration(1, d[6])) %}
 
+# Relative date expressions: "2 days ago", "in 3 weeks", "1 week from now"
+# These return a single date, unlike 'relative' which returns a span
+relativeDate -> duration _ agoConnector {% d => makeRelativeDate('past', d[0]) %}
+              | duration _ agoConnector _ atConnector _ time {% d => makeRelativeDate('past', d[0], undefined, d[6]) %}
+              | duration _ agoConnector _ atConnector _ timeWord {% d => makeRelativeDate('past', d[0], undefined, { special: d[6] }) %}
+              | inConnector _ duration {% d => makeRelativeDate('future', d[2]) %}
+              | inConnector _ duration _ atConnector _ time {% d => makeRelativeDate('future', d[2], undefined, d[6]) %}
+              | inConnector _ duration _ atConnector _ timeWord {% d => makeRelativeDate('future', d[2], undefined, { special: d[6] }) %}
+              | duration _ fromConnector _ now {% d => makeRelativeDate('future', d[0]) %}
+              | duration _ fromConnector _ now _ atConnector _ time {% d => makeRelativeDate('future', d[0], undefined, d[8]) %}
+              | duration _ fromConnector _ now _ atConnector _ timeWord {% d => makeRelativeDate('future', d[0], undefined, { special: d[8] }) %}
+              | duration _ fromConnector _ today {% d => makeRelativeDate('future', d[0], makeDate({ special: 'today' })) %}
+              | duration _ fromConnector _ today _ atConnector _ time {% d => makeRelativeDate('future', d[0], makeDate({ special: 'today' }), d[8]) %}
+              | duration _ fromConnector _ tomorrow {% d => makeRelativeDate('future', d[0], makeDate({ special: 'tomorrow' })) %}
+              | duration _ fromConnector _ tomorrow _ atConnector _ time {% d => makeRelativeDate('future', d[0], makeDate({ special: 'tomorrow' }), d[8]) %}
+              | duration _ fromConnector _ yesterday {% d => makeRelativeDate('future', d[0], makeDate({ special: 'yesterday' })) %}
+              | duration _ henceConnector {% d => makeRelativeDate('future', d[0]) %}
+              | duration _ laterConnector {% d => makeRelativeDate('future', d[0]) %}
+              | duration _ beforeConnector _ date {% d => makeRelativeDate('past', d[0], d[4]) %}
+              | duration _ afterConnector _ date {% d => makeRelativeDate('future', d[0], d[4]) %}
+              | theConnector _ dayUnit _ beforeConnector _ date {% d => makeRelativeDate('past', makeDuration(1, 'day'), d[6]) %}
+              | theConnector _ dayUnit _ afterConnector _ date {% d => makeRelativeDate('future', makeDuration(1, 'day'), d[6]) %}
+              | dayUnit _ beforeConnector _ date {% d => makeRelativeDate('past', makeDuration(1, 'day'), d[4]) %}
+              | dayUnit _ afterConnector _ date {% d => makeRelativeDate('future', makeDuration(1, 'day'), d[4]) %}
+              | wordNumber _ unit _ beforeConnector _ date {% d => makeRelativeDate('past', makeDuration(parseWordNumber(d[0]), d[2]), d[6]) %}
+              | wordNumber _ unit _ afterConnector _ date {% d => makeRelativeDate('future', makeDuration(parseWordNumber(d[0]), d[2]), d[6]) %}
+
 # Fuzzy period expressions: "Q1", "early march", "end of january"
 # Note: month non-terminal already returns a number from parseMonth, so don't call parseMonth again
 fuzzy -> quarter {% d => makeFuzzy({ period: 'quarter', quarter: parseQuarter(d[0].value) }) %}
@@ -466,8 +524,31 @@ fuzzy -> quarter {% d => makeFuzzy({ period: 'quarter', quarter: parseQuarter(d[
        | lateModifier _ thisRelative _ unit {% d => makeFuzzy({ period: d[4], modifier: 'late', relative: 'this' }) %}
        | beginningConnector _ ofConnector _ theConnector _ unit {% d => makeFuzzy({ period: d[6], modifier: 'beginning' }) %}
        | middleConnector _ ofConnector _ theConnector _ unit {% d => makeFuzzy({ period: d[6], modifier: 'middle' }) %}
-       | lastRelative _ unit _ ofConnector _ month {% d => makeFuzzy({ period: 'month', month: d[6], modifier: 'late' }) %}
-       | ordinalWord _ unit _ ofConnector _ month {% d => makeFuzzy({ period: 'month', month: d[6], modifier: parseOrdinalWord(d[0]) <= 2 ? 'early' : (parseOrdinalWord(d[0]) >= 4 ? 'late' : 'mid') }) %}
+       | lastRelative _ unit _ ofConnector _ month {% (d, _, reject) => {
+  // Reject "last day of month" - that's a specific date, not fuzzy
+  if (d[2].toLowerCase() === 'day' || d[2].toLowerCase() === 'days') return reject;
+  return makeFuzzy({ period: 'month', month: d[6], modifier: 'late' });
+} %}
+       | ordinalWord _ unit _ ofConnector _ month {% (d, _, reject) => {
+  // Reject "first/second/etc day of month" - that's a specific date, not fuzzy
+  if (d[2].toLowerCase() === 'day' || d[2].toLowerCase() === 'days') return reject;
+  return makeFuzzy({ period: 'month', month: d[6], modifier: parseOrdinalWord(d[0]) <= 2 ? 'early' : (parseOrdinalWord(d[0]) >= 4 ? 'late' : 'mid') });
+} %}
+       | weekendKeyword {% d => makeFuzzy({ period: 'weekend', relative: 'this' }) %}
+       | theConnector _ weekendKeyword {% d => makeFuzzy({ period: 'weekend', relative: 'this' }) %}
+       | thisRelative _ weekendKeyword {% d => makeFuzzy({ period: 'weekend', relative: 'this' }) %}
+       | nextRelative _ weekendKeyword {% d => makeFuzzy({ period: 'weekend', relative: 'next' }) %}
+       | lastRelative _ weekendKeyword {% d => makeFuzzy({ period: 'weekend', relative: 'last' }) %}
+       | tonightKeyword {% d => makeFuzzy({ period: 'tonight' }) %}
+       | nightKeyword {% d => makeFuzzy({ period: 'night' }) %}
+       | lastRelative _ nightKeyword {% d => makeFuzzy({ period: 'night', relative: 'last' }) %}
+       | tomorrow _ nightKeyword {% d => makeFuzzy({ period: 'night', relative: 'tomorrow' }) %}
+       | weekday _ nightKeyword {% d => makeFuzzy({ period: 'night', weekday: d[0] }) %}
+       | fortnightKeyword {% d => makeFuzzy({ period: 'fortnight' }) %}
+       | nextRelative _ fortnightKeyword {% d => makeFuzzy({ period: 'fortnight', relative: 'next' }) %}
+       | lastRelative _ fortnightKeyword {% d => makeFuzzy({ period: 'fortnight', relative: 'last' }) %}
+       | inConnector _ wordNumber _ fortnightKeyword {% d => makeFuzzy({ period: 'fortnight', count: parseWordNumber(d[2]) }) %}
+       | inConnector _ number _ fortnightKeyword {% d => makeFuzzy({ period: 'fortnight', count: d[2] }) %}
 
 # Duration expressions: "2 weeks", "30 days", "two hours", "1w 3d"
 duration -> number _ unit {% d => makeDuration(d[0], d[2]) %}
@@ -503,6 +584,7 @@ abbreviatedDuration -> %abbreviatedDuration {% d => {
 
 # Date expressions
 date -> specialDay {% d => makeDate({ special: d[0] }) %}
+      | ordinalWeekdayOfMonth {% first %}
       | relativeWeekday {% first %}
       | weekday {% d => makeDate({ weekday: d[0] }) %}
       | monthDayYear {% first %}
@@ -517,6 +599,7 @@ date -> specialDay {% d => makeDate({ special: d[0] }) %}
       | monthOnly {% first %}
       | yearOnly {% first %}
       | timeOnly {% first %}
+      | dayOnly {% first %}
 
 # Compact month-day: "July10", "Jan15"
 monthDayCompact -> %monthDayCompact {% d => {
@@ -547,6 +630,10 @@ yearOnly -> year {% (d, _, reject) => {
 timeOnly -> time {% d => makeDate({ time: d[0], timeOnly: true }) %}
           | timeWord {% d => makeDate({ time: { special: d[0] }, timeOnly: true }) %}
 
+# Day only: "the 15th", "on the 20th" (uses reference month/year, with smart month selection)
+dayOnly -> theConnector _ dayNumber {% d => makeDate({ day: d[2], dayOnly: true }) %}
+         | onConnector _ theConnector _ dayNumber {% d => makeDate({ day: d[4], dayOnly: true }) %}
+
 # Special days
 specialDay -> today {% d => 'today' %}
             | tomorrow {% d => 'tomorrow' %}
@@ -557,7 +644,7 @@ specialDay -> today {% d => 'today' %}
             | theConnector _ dayUnit _ beforeConnector _ yesterday {% d => 'dayBeforeYesterday' %}
             | dayUnit _ beforeConnector _ yesterday {% d => 'dayBeforeYesterday' %}
 
-dayUnit -> %unit {% d => d[0].value === 'day' ? d[0] : null %}
+dayUnit -> %unit {% (d, _, reject) => d[0].value === 'day' ? d[0] : reject %}
 
 # Relative weekday: "next monday", "last friday", "coming monday", "previous friday"
 relativeWeekday -> nextRelative _ weekday {% d => makeDate({ weekday: d[2], relative: 'next' }) %}
@@ -578,6 +665,16 @@ monthDay -> month _ dayNumber {% d => makeDate({ month: d[0], day: d[2] }) %}
           | theConnector _ dayNumber _ ofConnector _ month {% d => makeDate({ month: d[6], day: d[2] }) %}
           | month _ ordinalWord {% d => makeDate({ month: d[0], day: parseOrdinalWord(d[2]) }) %}
           | month _ theConnector _ dayNumber {% d => makeDate({ month: d[0], day: d[4] }) %}
+
+# Ordinal weekday of month: "first Monday of January", "last Friday of the month"
+ordinalWeekdayOfMonth -> ordinalWord _ weekday _ ofConnector _ month {% d => makeDate({ ordinalWeekday: parseOrdinalWord(d[0]), weekday: d[2], month: d[6] }) %}
+                       | lastRelative _ weekday _ ofConnector _ month {% d => makeDate({ ordinalWeekday: -1, weekday: d[2], month: d[6] }) %}
+                       | ordinalWord _ weekday _ ofConnector _ theConnector _ monthUnit {% d => makeDate({ ordinalWeekday: parseOrdinalWord(d[0]), weekday: d[2], monthFromRef: true }) %}
+                       | lastRelative _ weekday _ ofConnector _ theConnector _ monthUnit {% d => makeDate({ ordinalWeekday: -1, weekday: d[2], monthFromRef: true }) %}
+                       | ordinalWord _ dayUnit _ ofConnector _ month {% d => makeDate({ month: d[6], day: parseOrdinalWord(d[0]) }) %}
+                       | lastRelative _ dayUnit _ ofConnector _ month {% d => makeDate({ month: d[6], day: -1, lastDayOfMonth: true }) %}
+                       | lastRelative _ dayUnit _ ofConnector _ theConnector _ monthUnit {% d => makeDate({ lastDayOfMonth: true, monthFromRef: true }) %}
+                       | ordinalWord _ dayUnit _ ofConnector _ nextRelative _ monthUnit {% d => makeDate({ ordinalWeekday: parseOrdinalWord(d[0]), dayOfMonth: true, nextMonth: true }) %}
 
 # Month + day + year: "march 15, 2025", "march 15th 2025"
 monthDayYear -> monthDay _ year {% d => ({ ...d[0], year: d[2] }) %}
@@ -704,6 +801,12 @@ yearUnit -> %unit {% (d, _, reject) => {
   return reject;
 } %}
 
+monthUnit -> %unit {% (d, _, reject) => {
+  const val = d[0].value.toLowerCase();
+  if (val === 'month' || val === 'months' || val === 'mo' || val === 'mos') return val;
+  return reject;
+} %}
+
 wordNumber -> %wordNumber {% d => d[0].value %}
 
 ordinalWord -> %ordinalWord {% d => d[0].value %}
@@ -745,6 +848,9 @@ endConnector -> %kw_end {% first %}
 beginningConnector -> %kw_beginning {% first %}
 startConnector -> %kw_start {% first %}
 middleConnector -> %kw_middle {% first %}
+agoConnector -> %kw_ago {% first %}
+henceConnector -> %otherKeyword {% (d, _, reject) => d[0].value === 'hence' ? d[0] : reject %}
+laterConnector -> %otherKeyword {% (d, _, reject) => d[0].value === 'later' ? d[0] : reject %}
 
 # Modifier tokens for fuzzy periods
 earlyModifier -> %kw_early {% first %}
@@ -767,6 +873,12 @@ yesterday -> %kw_yesterday {% first %}
 now -> %kw_now {% first %}
 noon -> %kw_noon {% first %}
 midnight -> %kw_midnight {% first %}
+
+# Fuzzy period keywords
+weekendKeyword -> %kw_weekend {% first %}
+tonightKeyword -> %kw_tonight {% first %}
+nightKeyword -> %kw_night {% first %}
+fortnightKeyword -> %kw_fortnight {% first %}
 
 # Optional whitespace
 _ -> %ws:* {% nuller %}

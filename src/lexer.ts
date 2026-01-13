@@ -133,6 +133,11 @@ const lexer = moo.compile({
       ],
       // Ago keyword for relative dates
       kw_ago: ['ago'],
+      // Weekend and night keywords
+      kw_weekend: ['weekend'],
+      kw_tonight: ['tonight'],
+      kw_night: ['night'],
+      kw_fortnight: ['fortnight', 'fortnights'],
       // Other keywords
       otherKeyword: ['fiscal', 'fy', 'daily', 'weekly', 'monthly', 'yearly', 'annually', 'hence', 'later'],
     }), // Keywords are matched against lowercase input
