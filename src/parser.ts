@@ -164,8 +164,8 @@ function convertASTToResult(
         return { type: 'date', date: periodDates.end, title };
       }
 
-      // Weekend/night/tonight/fortnight are spans, not fuzzy periods
-      if (period === 'weekend' || period === 'night' || period === 'tonight' || period === 'fortnight') {
+      // Weekend/night/tonight/fortnight/weekNumber/weekOf are spans, not fuzzy periods
+      if (period === 'weekend' || period === 'night' || period === 'tonight' || period === 'fortnight' || period === 'weekNumber' || period === 'weekOf') {
         const duration = end.getTime() - start.getTime();
         return { type: 'span', start, end, duration, title };
       }
@@ -232,6 +232,16 @@ function convertASTToResult(
             baseDate.getUTCMinutes()
           )
         );
+      } else if (durationUnit === 'businessDay' || durationUnit === 'businessday') {
+        resultDate = new Date(Date.UTC(baseDate.getUTCFullYear(), baseDate.getUTCMonth(), baseDate.getUTCDate()));
+        let daysToAdd = durationValue;
+        while (daysToAdd > 0) {
+          resultDate.setUTCDate(resultDate.getUTCDate() + direction);
+          const dayOfWeek = resultDate.getUTCDay();
+          if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+            daysToAdd--;
+          }
+        }
       } else {
         const durationMs = convertDurationNode(durationNode);
         resultDate = new Date(baseDate.getTime() + direction * durationMs);

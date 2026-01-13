@@ -439,6 +439,20 @@ relativeDate -> duration _ agoConnector {% d => makeRelativeDate('past', d[0]) %
               | dayUnit _ afterConnector _ date {% d => makeRelativeDate('future', makeDuration(1, 'day'), d[4]) %}
               | wordNumber _ unit _ beforeConnector _ date {% d => makeRelativeDate('past', makeDuration(parseWordNumber(d[0]), d[2]), d[6]) %}
               | wordNumber _ unit _ afterConnector _ date {% d => makeRelativeDate('future', makeDuration(parseWordNumber(d[0]), d[2]), d[6]) %}
+              | nextRelative _ businessKeyword _ dayOrDaysUnit {% d => makeRelativeDate('future', makeDuration(1, 'businessDay')) %}
+              | inConnector _ number _ businessKeyword _ dayOrDaysUnit {% d => makeRelativeDate('future', makeDuration(d[2], 'businessDay')) %}
+              | inConnector _ wordNumber _ businessKeyword _ dayOrDaysUnit {% d => makeRelativeDate('future', makeDuration(parseWordNumber(d[2]), 'businessDay')) %}
+              | number _ businessKeyword _ dayOrDaysUnit _ agoConnector {% d => makeRelativeDate('past', makeDuration(d[0], 'businessDay')) %}
+              | wordNumber _ businessKeyword _ dayOrDaysUnit _ agoConnector {% d => makeRelativeDate('past', makeDuration(parseWordNumber(d[0]), 'businessDay')) %}
+              | wordNumber _ fortnightKeyword _ fromConnector _ now {% d => makeRelativeDate('future', makeDuration(parseWordNumber(d[0]) * 2, 'week')) %}
+              | number _ fortnightKeyword _ fromConnector _ now {% d => makeRelativeDate('future', makeDuration(d[0] * 2, 'week')) %}
+              | fortnightKeyword _ fromConnector _ now {% d => makeRelativeDate('future', makeDuration(2, 'week')) %}
+              | inConnector _ wordNumber _ fortnightKeyword {% d => makeRelativeDate('future', makeDuration(parseWordNumber(d[2]) * 2, 'week')) %}
+              | inConnector _ number _ fortnightKeyword {% d => makeRelativeDate('future', makeDuration(d[2] * 2, 'week')) %}
+              | inConnector _ fortnightKeyword {% d => makeRelativeDate('future', makeDuration(2, 'week')) %}
+              | wordNumber _ fortnightKeyword _ agoConnector {% d => makeRelativeDate('past', makeDuration(parseWordNumber(d[0]) * 2, 'week')) %}
+              | number _ fortnightKeyword _ agoConnector {% d => makeRelativeDate('past', makeDuration(d[0] * 2, 'week')) %}
+              | fortnightKeyword _ agoConnector {% d => makeRelativeDate('past', makeDuration(2, 'week')) %}
 
 # Fuzzy period expressions: "Q1", "early march", "end of january"
 # Note: month non-terminal already returns a number from parseMonth, so don't call parseMonth again
@@ -544,11 +558,13 @@ fuzzy -> quarter {% d => makeFuzzy({ period: 'quarter', quarter: parseQuarter(d[
        | lastRelative _ nightKeyword {% d => makeFuzzy({ period: 'night', relative: 'last' }) %}
        | tomorrow _ nightKeyword {% d => makeFuzzy({ period: 'night', relative: 'tomorrow' }) %}
        | weekday _ nightKeyword {% d => makeFuzzy({ period: 'night', weekday: d[0] }) %}
-       | fortnightKeyword {% d => makeFuzzy({ period: 'fortnight' }) %}
-       | nextRelative _ fortnightKeyword {% d => makeFuzzy({ period: 'fortnight', relative: 'next' }) %}
-       | lastRelative _ fortnightKeyword {% d => makeFuzzy({ period: 'fortnight', relative: 'last' }) %}
-       | inConnector _ wordNumber _ fortnightKeyword {% d => makeFuzzy({ period: 'fortnight', count: parseWordNumber(d[2]) }) %}
-       | inConnector _ number _ fortnightKeyword {% d => makeFuzzy({ period: 'fortnight', count: d[2] }) %}
+       | laterKeyword _ today {% d => makeFuzzy({ period: 'day', modifier: 'later' }) %}
+       | earlierKeyword _ today {% d => makeFuzzy({ period: 'day', modifier: 'earlier' }) %}
+       | laterKeyword _ thisRelative _ unit {% d => makeFuzzy({ period: d[4], modifier: 'later', relative: 'this' }) %}
+       | earlierKeyword _ thisRelative _ unit {% d => makeFuzzy({ period: d[4], modifier: 'earlier', relative: 'this' }) %}
+       | weekKeyword _ number {% d => makeFuzzy({ period: 'weekNumber', weekNumber: d[2] }) %}
+       | weekKeyword _ number _ year {% d => makeFuzzy({ period: 'weekNumber', weekNumber: d[2], year: d[4] }) %}
+       | theConnector _ weekKeyword _ ofConnector _ date {% d => makeFuzzy({ period: 'weekOf', baseDate: d[6] }) %}
 
 # Duration expressions: "2 weeks", "30 days", "two hours", "1w 3d"
 duration -> number _ unit {% d => makeDuration(d[0], d[2]) %}
@@ -600,6 +616,7 @@ date -> specialDay {% d => makeDate({ special: d[0] }) %}
       | yearOnly {% first %}
       | timeOnly {% first %}
       | dayOnly {% first %}
+      | eodCobDate {% first %}
 
 # Compact month-day: "July10", "Jan15"
 monthDayCompact -> %monthDayCompact {% d => {
@@ -634,6 +651,17 @@ timeOnly -> time {% d => makeDate({ time: d[0], timeOnly: true }) %}
 dayOnly -> theConnector _ dayNumber {% d => makeDate({ day: d[2], dayOnly: true }) %}
          | onConnector _ theConnector _ dayNumber {% d => makeDate({ day: d[4], dayOnly: true }) %}
 
+# EOD/COB patterns
+eodCobDate -> eodKeyword {% d => makeDate({ special: 'today', time: { hour: 23, minute: 59 } }) %}
+            | cobKeyword {% d => makeDate({ special: 'today', time: { hour: 17, minute: 0 } }) %}
+            | eodKeyword _ weekday {% d => makeDate({ weekday: d[2], time: { hour: 23, minute: 59 } }) %}
+            | cobKeyword _ weekday {% d => makeDate({ weekday: d[2], time: { hour: 17, minute: 0 } }) %}
+            | eodKeyword _ specialDay {% d => makeDate({ special: d[2], time: { hour: 23, minute: 59 } }) %}
+            | cobKeyword _ specialDay {% d => makeDate({ special: d[2], time: { hour: 17, minute: 0 } }) %}
+            | endConnector _ ofConnector _ dayUnit _ specialDay {% d => makeDate({ special: d[6], time: { hour: 23, minute: 59 } }) %}
+            | closeKeyword _ ofConnector _ businessKeyword _ weekday {% d => makeDate({ weekday: d[6], time: { hour: 17, minute: 0 } }) %}
+            | closeKeyword _ ofConnector _ businessKeyword _ specialDay {% d => makeDate({ special: d[6], time: { hour: 17, minute: 0 } }) %}
+
 # Special days
 specialDay -> today {% d => 'today' %}
             | tomorrow {% d => 'tomorrow' %}
@@ -645,6 +673,8 @@ specialDay -> today {% d => 'today' %}
             | dayUnit _ beforeConnector _ yesterday {% d => 'dayBeforeYesterday' %}
 
 dayUnit -> %unit {% (d, _, reject) => d[0].value === 'day' ? d[0] : reject %}
+
+dayOrDaysUnit -> %unit {% (d, _, reject) => (d[0].value === 'day' || d[0].value === 'days') ? d[0] : reject %}
 
 # Relative weekday: "next monday", "last friday", "coming monday", "previous friday"
 relativeWeekday -> nextRelative _ weekday {% d => makeDate({ weekday: d[2], relative: 'next' }) %}
@@ -707,6 +737,9 @@ dateWithTime -> date _ atConnector _ time {% d => ({ ...d[0], time: d[4] }) %}
               | time _ date {% d => ({ ...d[2], time: d[0] }) %}
               | timeWord _ date {% d => ({ ...d[2], time: { special: d[0] } }) %}
               | date _ time {% d => ({ ...d[0], time: d[2] }) %}
+              | timeWord _ onConnector _ date {% d => ({ ...d[4], time: { special: d[0] } }) %}
+              | timeWord _ onConnector _ weekday {% d => makeDate({ weekday: d[4], time: { special: d[0] } }) %}
+              | midnight _ tonightKeyword {% d => makeDate({ special: 'tonight', time: { special: 'midnight' } }) %}
 
 # Complex date expressions: "next week monday 10am"
 complexDate -> nextRelative _ unit _ weekday _ time {% d => makeDate({ relative: 'next', period: d[2], weekday: d[4], time: d[6] }) %}
@@ -747,6 +780,45 @@ time -> %time {% d => {
   if (d[1].value === 'am' && hour === 12) hour = 0;
   return { hour, minute: 0 };
 } %}
+      | quarterKeyword _ pastConnector _ hourNumber {% d => ({ hour: d[4], minute: 15 }) %}
+      | quarterKeyword _ pastConnector _ hourNumber %ampm {% d => {
+  let hour = d[4];
+  if (d[5].value === 'pm' && hour !== 12) hour += 12;
+  if (d[5].value === 'am' && hour === 12) hour = 0;
+  return { hour, minute: 15 };
+} %}
+      | halfWord _ pastConnector _ hourNumber {% d => ({ hour: d[4], minute: 30 }) %}
+      | halfWord _ pastConnector _ hourNumber %ampm {% d => {
+  let hour = d[4];
+  if (d[5].value === 'pm' && hour !== 12) hour += 12;
+  if (d[5].value === 'am' && hour === 12) hour = 0;
+  return { hour, minute: 30 };
+} %}
+      | quarterKeyword _ toConnector _ hourNumber {% d => ({ hour: d[4] - 1, minute: 45 }) %}
+      | quarterKeyword _ toConnector _ hourNumber %ampm {% d => {
+  let hour = d[4];
+  if (d[5].value === 'pm' && hour !== 12) hour += 12;
+  if (d[5].value === 'am' && hour === 12) hour = 0;
+  return { hour: hour - 1, minute: 45 };
+} %}
+      | number _ pastConnector _ hourNumber {% d => ({ hour: d[4], minute: d[0] }) %}
+      | number _ pastConnector _ hourNumber %ampm {% d => {
+  let hour = d[4];
+  if (d[5].value === 'pm' && hour !== 12) hour += 12;
+  if (d[5].value === 'am' && hour === 12) hour = 0;
+  return { hour, minute: d[0] };
+} %}
+      | number _ toConnector _ hourNumber {% d => ({ hour: d[4] - 1, minute: 60 - d[0] }) %}
+      | number _ toConnector _ hourNumber %ampm {% d => {
+  let hour = d[4];
+  if (d[5].value === 'pm' && hour !== 12) hour += 12;
+  if (d[5].value === 'am' && hour === 12) hour = 0;
+  return { hour: hour - 1, minute: 60 - d[0] };
+} %}
+      | number _ toConnector _ noon {% d => ({ hour: 11, minute: 60 - d[0] }) %}
+      | number _ toConnector _ midnight {% d => ({ hour: 23, minute: 60 - d[0] }) %}
+      | quarterKeyword _ toConnector _ noon {% d => ({ hour: 11, minute: 45 }) %}
+      | quarterKeyword _ toConnector _ midnight {% d => ({ hour: 23, minute: 45 }) %}
 
 # Time words
 timeWord -> noon {% d => 'noon' %}
@@ -874,11 +946,35 @@ now -> %kw_now {% first %}
 noon -> %kw_noon {% first %}
 midnight -> %kw_midnight {% first %}
 
+# Quarter keyword for time expressions
+quarterKeyword -> %unit {% (d, _, reject) => d[0].value === 'quarter' ? d[0] : reject %}
+
+# Hour number (1-12 for time expressions)
+hourNumber -> %integer {% (d, _, reject) => {
+  const val = parseInt(d[0].value, 10);
+  if (val < 1 || val > 12) return reject;
+  return val;
+} %}
+
+# Past connector for time expressions (reuse kw_past)
+pastConnector -> %kw_past {% first %}
+
 # Fuzzy period keywords
 weekendKeyword -> %kw_weekend {% first %}
 tonightKeyword -> %kw_tonight {% first %}
 nightKeyword -> %kw_night {% first %}
 fortnightKeyword -> %kw_fortnight {% first %}
+laterKeyword -> %otherKeyword {% (d, _, reject) => d[0].value === 'later' ? d[0] : reject %}
+earlierKeyword -> %otherKeyword {% (d, _, reject) => d[0].value === 'earlier' ? d[0] : reject %}
+weekKeyword -> %unit {% (d, _, reject) => {
+  const val = d[0].value.toLowerCase();
+  if (val === 'week' || val === 'weeks') return d[0];
+  return reject;
+} %}
+businessKeyword -> %kw_business {% first %}
+eodKeyword -> %kw_eod {% first %}
+cobKeyword -> %kw_cob {% first %}
+closeKeyword -> %kw_close {% first %}
 
 # Optional whitespace
 _ -> %ws:* {% nuller %}

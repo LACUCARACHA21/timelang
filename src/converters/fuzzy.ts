@@ -186,6 +186,49 @@ function getBasePeriodDates(
     return { start, end };
   }
 
+  if (node.period === 'weekNumber' && node.weekNumber !== undefined) {
+    const weekNum = node.weekNumber as number;
+    const targetYear = (node.year as number) ?? ref.getUTCFullYear();
+    const weekStart = opts.weekStartsOn === 'monday' ? 1 : 0;
+
+    // Week 1 starts on the first week containing a Thursday (ISO) or first of year
+    const jan1 = new Date(Date.UTC(targetYear, 0, 1));
+    const jan1Day = jan1.getUTCDay();
+    const daysToFirstWeekStart = (weekStart - jan1Day + 7) % 7;
+    const firstWeekStart = new Date(jan1.getTime() + daysToFirstWeekStart * MS_PER_DAY);
+
+    const start = new Date(firstWeekStart.getTime() + (weekNum - 1) * MS_PER_WEEK);
+    const end = new Date(start.getTime() + 6 * MS_PER_DAY);
+    return { start, end };
+  }
+
+  if (node.period === 'weekOf' && node.baseDate) {
+    const baseDate = node.baseDate as ASTNode;
+    let targetDate: Date;
+
+    if (baseDate.month !== undefined && baseDate.day !== undefined) {
+      const month = typeof baseDate.month === 'number' ? baseDate.month - 1 : 0;
+      const day = baseDate.day as number;
+      const targetYear = (baseDate.year as number) ?? ref.getUTCFullYear();
+      targetDate = new Date(Date.UTC(targetYear, month, day));
+    } else {
+      targetDate = ref;
+    }
+
+    const weekStart = opts.weekStartsOn === 'monday' ? 1 : 0;
+    const currentDay = targetDate.getUTCDay();
+    const daysFromStart = (currentDay - weekStart + 7) % 7;
+    const start = new Date(
+      Date.UTC(
+        targetDate.getUTCFullYear(),
+        targetDate.getUTCMonth(),
+        targetDate.getUTCDate() - daysFromStart
+      )
+    );
+    const end = new Date(start.getTime() + 6 * MS_PER_DAY);
+    return { start, end };
+  }
+
   if (node.period === 'day') {
     const start = new Date(
       Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth(), ref.getUTCDate())

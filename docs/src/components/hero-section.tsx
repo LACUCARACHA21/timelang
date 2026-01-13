@@ -7,7 +7,7 @@ export function HeroSection() {
         Parse time, naturally
       </h1>
       <p className="text-zinc-500 mb-8 text-sm sm:text-base">
-        A JavaScript library to turn "next friday at 3pm" or "last 30 days" into dates and durations.
+        A JavaScript library to turn natural language into dates and durations.
       </p>
       <HeroDemo />
     </section>

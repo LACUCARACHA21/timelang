@@ -80,6 +80,10 @@ declare var kw_weekend: any;
 declare var kw_tonight: any;
 declare var kw_night: any;
 declare var kw_fortnight: any;
+declare var kw_business: any;
+declare var kw_eod: any;
+declare var kw_cob: any;
+declare var kw_close: any;
 declare var ws: any;
 
 import { lexer } from './lexer.js';
@@ -510,6 +514,20 @@ const grammar: Grammar = {
     {"name": "relativeDate", "symbols": ["dayUnit", "_", "afterConnector", "_", "date"], "postprocess": d => makeRelativeDate('future', makeDuration(1, 'day'), d[4])},
     {"name": "relativeDate", "symbols": ["wordNumber", "_", "unit", "_", "beforeConnector", "_", "date"], "postprocess": d => makeRelativeDate('past', makeDuration(parseWordNumber(d[0]), d[2]), d[6])},
     {"name": "relativeDate", "symbols": ["wordNumber", "_", "unit", "_", "afterConnector", "_", "date"], "postprocess": d => makeRelativeDate('future', makeDuration(parseWordNumber(d[0]), d[2]), d[6])},
+    {"name": "relativeDate", "symbols": ["nextRelative", "_", "businessKeyword", "_", "dayOrDaysUnit"], "postprocess": d => makeRelativeDate('future', makeDuration(1, 'businessDay'))},
+    {"name": "relativeDate", "symbols": ["inConnector", "_", "number", "_", "businessKeyword", "_", "dayOrDaysUnit"], "postprocess": d => makeRelativeDate('future', makeDuration(d[2], 'businessDay'))},
+    {"name": "relativeDate", "symbols": ["inConnector", "_", "wordNumber", "_", "businessKeyword", "_", "dayOrDaysUnit"], "postprocess": d => makeRelativeDate('future', makeDuration(parseWordNumber(d[2]), 'businessDay'))},
+    {"name": "relativeDate", "symbols": ["number", "_", "businessKeyword", "_", "dayOrDaysUnit", "_", "agoConnector"], "postprocess": d => makeRelativeDate('past', makeDuration(d[0], 'businessDay'))},
+    {"name": "relativeDate", "symbols": ["wordNumber", "_", "businessKeyword", "_", "dayOrDaysUnit", "_", "agoConnector"], "postprocess": d => makeRelativeDate('past', makeDuration(parseWordNumber(d[0]), 'businessDay'))},
+    {"name": "relativeDate", "symbols": ["wordNumber", "_", "fortnightKeyword", "_", "fromConnector", "_", "now"], "postprocess": d => makeRelativeDate('future', makeDuration(parseWordNumber(d[0]) * 2, 'week'))},
+    {"name": "relativeDate", "symbols": ["number", "_", "fortnightKeyword", "_", "fromConnector", "_", "now"], "postprocess": d => makeRelativeDate('future', makeDuration(d[0] * 2, 'week'))},
+    {"name": "relativeDate", "symbols": ["fortnightKeyword", "_", "fromConnector", "_", "now"], "postprocess": d => makeRelativeDate('future', makeDuration(2, 'week'))},
+    {"name": "relativeDate", "symbols": ["inConnector", "_", "wordNumber", "_", "fortnightKeyword"], "postprocess": d => makeRelativeDate('future', makeDuration(parseWordNumber(d[2]) * 2, 'week'))},
+    {"name": "relativeDate", "symbols": ["inConnector", "_", "number", "_", "fortnightKeyword"], "postprocess": d => makeRelativeDate('future', makeDuration(d[2] * 2, 'week'))},
+    {"name": "relativeDate", "symbols": ["inConnector", "_", "fortnightKeyword"], "postprocess": d => makeRelativeDate('future', makeDuration(2, 'week'))},
+    {"name": "relativeDate", "symbols": ["wordNumber", "_", "fortnightKeyword", "_", "agoConnector"], "postprocess": d => makeRelativeDate('past', makeDuration(parseWordNumber(d[0]) * 2, 'week'))},
+    {"name": "relativeDate", "symbols": ["number", "_", "fortnightKeyword", "_", "agoConnector"], "postprocess": d => makeRelativeDate('past', makeDuration(d[0] * 2, 'week'))},
+    {"name": "relativeDate", "symbols": ["fortnightKeyword", "_", "agoConnector"], "postprocess": d => makeRelativeDate('past', makeDuration(2, 'week'))},
     {"name": "fuzzy", "symbols": ["quarter"], "postprocess": d => makeFuzzy({ period: 'quarter', quarter: parseQuarter(d[0].value) })},
     {"name": "fuzzy", "symbols": ["quarter", "_", "year"], "postprocess": d => makeFuzzy({ period: 'quarter', quarter: parseQuarter(d[0].value), year: d[2] })},
     {"name": "fuzzy", "symbols": ["half"], "postprocess": d => makeFuzzy({ period: 'half', half: parseHalf(d[0].value) })},
@@ -612,11 +630,13 @@ const grammar: Grammar = {
     {"name": "fuzzy", "symbols": ["lastRelative", "_", "nightKeyword"], "postprocess": d => makeFuzzy({ period: 'night', relative: 'last' })},
     {"name": "fuzzy", "symbols": ["tomorrow", "_", "nightKeyword"], "postprocess": d => makeFuzzy({ period: 'night', relative: 'tomorrow' })},
     {"name": "fuzzy", "symbols": ["weekday", "_", "nightKeyword"], "postprocess": d => makeFuzzy({ period: 'night', weekday: d[0] })},
-    {"name": "fuzzy", "symbols": ["fortnightKeyword"], "postprocess": d => makeFuzzy({ period: 'fortnight' })},
-    {"name": "fuzzy", "symbols": ["nextRelative", "_", "fortnightKeyword"], "postprocess": d => makeFuzzy({ period: 'fortnight', relative: 'next' })},
-    {"name": "fuzzy", "symbols": ["lastRelative", "_", "fortnightKeyword"], "postprocess": d => makeFuzzy({ period: 'fortnight', relative: 'last' })},
-    {"name": "fuzzy", "symbols": ["inConnector", "_", "wordNumber", "_", "fortnightKeyword"], "postprocess": d => makeFuzzy({ period: 'fortnight', count: parseWordNumber(d[2]) })},
-    {"name": "fuzzy", "symbols": ["inConnector", "_", "number", "_", "fortnightKeyword"], "postprocess": d => makeFuzzy({ period: 'fortnight', count: d[2] })},
+    {"name": "fuzzy", "symbols": ["laterKeyword", "_", "today"], "postprocess": d => makeFuzzy({ period: 'day', modifier: 'later' })},
+    {"name": "fuzzy", "symbols": ["earlierKeyword", "_", "today"], "postprocess": d => makeFuzzy({ period: 'day', modifier: 'earlier' })},
+    {"name": "fuzzy", "symbols": ["laterKeyword", "_", "thisRelative", "_", "unit"], "postprocess": d => makeFuzzy({ period: d[4], modifier: 'later', relative: 'this' })},
+    {"name": "fuzzy", "symbols": ["earlierKeyword", "_", "thisRelative", "_", "unit"], "postprocess": d => makeFuzzy({ period: d[4], modifier: 'earlier', relative: 'this' })},
+    {"name": "fuzzy", "symbols": ["weekKeyword", "_", "number"], "postprocess": d => makeFuzzy({ period: 'weekNumber', weekNumber: d[2] })},
+    {"name": "fuzzy", "symbols": ["weekKeyword", "_", "number", "_", "year"], "postprocess": d => makeFuzzy({ period: 'weekNumber', weekNumber: d[2], year: d[4] })},
+    {"name": "fuzzy", "symbols": ["theConnector", "_", "weekKeyword", "_", "ofConnector", "_", "date"], "postprocess": d => makeFuzzy({ period: 'weekOf', baseDate: d[6] })},
     {"name": "duration", "symbols": ["number", "_", "unit"], "postprocess": d => makeDuration(d[0], d[2])},
     {"name": "duration", "symbols": ["wordNumber", "_", "unit"], "postprocess": d => makeDuration(parseWordNumber(d[0]), d[2])},
     {"name": "duration", "symbols": ["abbreviatedDuration"], "postprocess": d => d[0]},
@@ -662,6 +682,7 @@ const grammar: Grammar = {
     {"name": "date", "symbols": ["yearOnly"], "postprocess": first},
     {"name": "date", "symbols": ["timeOnly"], "postprocess": first},
     {"name": "date", "symbols": ["dayOnly"], "postprocess": first},
+    {"name": "date", "symbols": ["eodCobDate"], "postprocess": first},
     {"name": "monthDayCompact", "symbols": [(lexer.has("monthDayCompact") ? {type: "monthDayCompact"} : monthDayCompact)], "postprocess":  d => {
           const parsed = parseMonthDayCompact(d[0].value);
           return makeDate({ month: parsed.month, day: parsed.day });
@@ -681,6 +702,15 @@ const grammar: Grammar = {
     {"name": "timeOnly", "symbols": ["timeWord"], "postprocess": d => makeDate({ time: { special: d[0] }, timeOnly: true })},
     {"name": "dayOnly", "symbols": ["theConnector", "_", "dayNumber"], "postprocess": d => makeDate({ day: d[2], dayOnly: true })},
     {"name": "dayOnly", "symbols": ["onConnector", "_", "theConnector", "_", "dayNumber"], "postprocess": d => makeDate({ day: d[4], dayOnly: true })},
+    {"name": "eodCobDate", "symbols": ["eodKeyword"], "postprocess": d => makeDate({ special: 'today', time: { hour: 23, minute: 59 } })},
+    {"name": "eodCobDate", "symbols": ["cobKeyword"], "postprocess": d => makeDate({ special: 'today', time: { hour: 17, minute: 0 } })},
+    {"name": "eodCobDate", "symbols": ["eodKeyword", "_", "weekday"], "postprocess": d => makeDate({ weekday: d[2], time: { hour: 23, minute: 59 } })},
+    {"name": "eodCobDate", "symbols": ["cobKeyword", "_", "weekday"], "postprocess": d => makeDate({ weekday: d[2], time: { hour: 17, minute: 0 } })},
+    {"name": "eodCobDate", "symbols": ["eodKeyword", "_", "specialDay"], "postprocess": d => makeDate({ special: d[2], time: { hour: 23, minute: 59 } })},
+    {"name": "eodCobDate", "symbols": ["cobKeyword", "_", "specialDay"], "postprocess": d => makeDate({ special: d[2], time: { hour: 17, minute: 0 } })},
+    {"name": "eodCobDate", "symbols": ["endConnector", "_", "ofConnector", "_", "dayUnit", "_", "specialDay"], "postprocess": d => makeDate({ special: d[6], time: { hour: 23, minute: 59 } })},
+    {"name": "eodCobDate", "symbols": ["closeKeyword", "_", "ofConnector", "_", "businessKeyword", "_", "weekday"], "postprocess": d => makeDate({ weekday: d[6], time: { hour: 17, minute: 0 } })},
+    {"name": "eodCobDate", "symbols": ["closeKeyword", "_", "ofConnector", "_", "businessKeyword", "_", "specialDay"], "postprocess": d => makeDate({ special: d[6], time: { hour: 17, minute: 0 } })},
     {"name": "specialDay", "symbols": ["today"], "postprocess": d => 'today'},
     {"name": "specialDay", "symbols": ["tomorrow"], "postprocess": d => 'tomorrow'},
     {"name": "specialDay", "symbols": ["yesterday"], "postprocess": d => 'yesterday'},
@@ -690,6 +720,7 @@ const grammar: Grammar = {
     {"name": "specialDay", "symbols": ["theConnector", "_", "dayUnit", "_", "beforeConnector", "_", "yesterday"], "postprocess": d => 'dayBeforeYesterday'},
     {"name": "specialDay", "symbols": ["dayUnit", "_", "beforeConnector", "_", "yesterday"], "postprocess": d => 'dayBeforeYesterday'},
     {"name": "dayUnit", "symbols": [(lexer.has("unit") ? {type: "unit"} : unit)], "postprocess": (d, _, reject) => d[0].value === 'day' ? d[0] : reject},
+    {"name": "dayOrDaysUnit", "symbols": [(lexer.has("unit") ? {type: "unit"} : unit)], "postprocess": (d, _, reject) => (d[0].value === 'day' || d[0].value === 'days') ? d[0] : reject},
     {"name": "relativeWeekday", "symbols": ["nextRelative", "_", "weekday"], "postprocess": d => makeDate({ weekday: d[2], relative: 'next' })},
     {"name": "relativeWeekday", "symbols": ["lastRelative", "_", "weekday"], "postprocess": d => makeDate({ weekday: d[2], relative: 'last' })},
     {"name": "relativeWeekday", "symbols": ["thisRelative", "_", "weekday"], "postprocess": d => makeDate({ weekday: d[2], relative: 'this' })},
@@ -737,6 +768,9 @@ const grammar: Grammar = {
     {"name": "dateWithTime", "symbols": ["time", "_", "date"], "postprocess": d => ({ ...d[2], time: d[0] })},
     {"name": "dateWithTime", "symbols": ["timeWord", "_", "date"], "postprocess": d => ({ ...d[2], time: { special: d[0] } })},
     {"name": "dateWithTime", "symbols": ["date", "_", "time"], "postprocess": d => ({ ...d[0], time: d[2] })},
+    {"name": "dateWithTime", "symbols": ["timeWord", "_", "onConnector", "_", "date"], "postprocess": d => ({ ...d[4], time: { special: d[0] } })},
+    {"name": "dateWithTime", "symbols": ["timeWord", "_", "onConnector", "_", "weekday"], "postprocess": d => makeDate({ weekday: d[4], time: { special: d[0] } })},
+    {"name": "dateWithTime", "symbols": ["midnight", "_", "tonightKeyword"], "postprocess": d => makeDate({ special: 'tonight', time: { special: 'midnight' } })},
     {"name": "complexDate", "symbols": ["nextRelative", "_", "unit", "_", "weekday", "_", "time"], "postprocess": d => makeDate({ relative: 'next', period: d[2], weekday: d[4], time: d[6] })},
     {"name": "complexDate", "symbols": ["nextRelative", "_", "unit", "_", "weekday"], "postprocess": d => makeDate({ relative: 'next', period: d[2], weekday: d[4] })},
     {"name": "complexDate", "symbols": ["lastRelative", "_", "unit", "_", "weekday", "_", "time"], "postprocess": d => makeDate({ relative: 'last', period: d[2], weekday: d[4], time: d[6] })},
@@ -773,6 +807,45 @@ const grammar: Grammar = {
           if (d[1].value === 'am' && hour === 12) hour = 0;
           return { hour, minute: 0 };
         } },
+    {"name": "time", "symbols": ["quarterKeyword", "_", "pastConnector", "_", "hourNumber"], "postprocess": d => ({ hour: d[4], minute: 15 })},
+    {"name": "time", "symbols": ["quarterKeyword", "_", "pastConnector", "_", "hourNumber", (lexer.has("ampm") ? {type: "ampm"} : ampm)], "postprocess":  d => {
+          let hour = d[4];
+          if (d[5].value === 'pm' && hour !== 12) hour += 12;
+          if (d[5].value === 'am' && hour === 12) hour = 0;
+          return { hour, minute: 15 };
+        } },
+    {"name": "time", "symbols": ["halfWord", "_", "pastConnector", "_", "hourNumber"], "postprocess": d => ({ hour: d[4], minute: 30 })},
+    {"name": "time", "symbols": ["halfWord", "_", "pastConnector", "_", "hourNumber", (lexer.has("ampm") ? {type: "ampm"} : ampm)], "postprocess":  d => {
+          let hour = d[4];
+          if (d[5].value === 'pm' && hour !== 12) hour += 12;
+          if (d[5].value === 'am' && hour === 12) hour = 0;
+          return { hour, minute: 30 };
+        } },
+    {"name": "time", "symbols": ["quarterKeyword", "_", "toConnector", "_", "hourNumber"], "postprocess": d => ({ hour: d[4] - 1, minute: 45 })},
+    {"name": "time", "symbols": ["quarterKeyword", "_", "toConnector", "_", "hourNumber", (lexer.has("ampm") ? {type: "ampm"} : ampm)], "postprocess":  d => {
+          let hour = d[4];
+          if (d[5].value === 'pm' && hour !== 12) hour += 12;
+          if (d[5].value === 'am' && hour === 12) hour = 0;
+          return { hour: hour - 1, minute: 45 };
+        } },
+    {"name": "time", "symbols": ["number", "_", "pastConnector", "_", "hourNumber"], "postprocess": d => ({ hour: d[4], minute: d[0] })},
+    {"name": "time", "symbols": ["number", "_", "pastConnector", "_", "hourNumber", (lexer.has("ampm") ? {type: "ampm"} : ampm)], "postprocess":  d => {
+          let hour = d[4];
+          if (d[5].value === 'pm' && hour !== 12) hour += 12;
+          if (d[5].value === 'am' && hour === 12) hour = 0;
+          return { hour, minute: d[0] };
+        } },
+    {"name": "time", "symbols": ["number", "_", "toConnector", "_", "hourNumber"], "postprocess": d => ({ hour: d[4] - 1, minute: 60 - d[0] })},
+    {"name": "time", "symbols": ["number", "_", "toConnector", "_", "hourNumber", (lexer.has("ampm") ? {type: "ampm"} : ampm)], "postprocess":  d => {
+          let hour = d[4];
+          if (d[5].value === 'pm' && hour !== 12) hour += 12;
+          if (d[5].value === 'am' && hour === 12) hour = 0;
+          return { hour: hour - 1, minute: 60 - d[0] };
+        } },
+    {"name": "time", "symbols": ["number", "_", "toConnector", "_", "noon"], "postprocess": d => ({ hour: 11, minute: 60 - d[0] })},
+    {"name": "time", "symbols": ["number", "_", "toConnector", "_", "midnight"], "postprocess": d => ({ hour: 23, minute: 60 - d[0] })},
+    {"name": "time", "symbols": ["quarterKeyword", "_", "toConnector", "_", "noon"], "postprocess": d => ({ hour: 11, minute: 45 })},
+    {"name": "time", "symbols": ["quarterKeyword", "_", "toConnector", "_", "midnight"], "postprocess": d => ({ hour: 23, minute: 45 })},
     {"name": "timeWord", "symbols": ["noon"], "postprocess": d => 'noon'},
     {"name": "timeWord", "symbols": ["midnight"], "postprocess": d => 'midnight'},
     {"name": "number", "symbols": [(lexer.has("integer") ? {type: "integer"} : integer)], "postprocess": d => parseInt(d[0].value, 10)},
@@ -870,10 +943,28 @@ const grammar: Grammar = {
     {"name": "now", "symbols": [(lexer.has("kw_now") ? {type: "kw_now"} : kw_now)], "postprocess": first},
     {"name": "noon", "symbols": [(lexer.has("kw_noon") ? {type: "kw_noon"} : kw_noon)], "postprocess": first},
     {"name": "midnight", "symbols": [(lexer.has("kw_midnight") ? {type: "kw_midnight"} : kw_midnight)], "postprocess": first},
+    {"name": "quarterKeyword", "symbols": [(lexer.has("unit") ? {type: "unit"} : unit)], "postprocess": (d, _, reject) => d[0].value === 'quarter' ? d[0] : reject},
+    {"name": "hourNumber", "symbols": [(lexer.has("integer") ? {type: "integer"} : integer)], "postprocess":  (d, _, reject) => {
+          const val = parseInt(d[0].value, 10);
+          if (val < 1 || val > 12) return reject;
+          return val;
+        } },
+    {"name": "pastConnector", "symbols": [(lexer.has("kw_past") ? {type: "kw_past"} : kw_past)], "postprocess": first},
     {"name": "weekendKeyword", "symbols": [(lexer.has("kw_weekend") ? {type: "kw_weekend"} : kw_weekend)], "postprocess": first},
     {"name": "tonightKeyword", "symbols": [(lexer.has("kw_tonight") ? {type: "kw_tonight"} : kw_tonight)], "postprocess": first},
     {"name": "nightKeyword", "symbols": [(lexer.has("kw_night") ? {type: "kw_night"} : kw_night)], "postprocess": first},
     {"name": "fortnightKeyword", "symbols": [(lexer.has("kw_fortnight") ? {type: "kw_fortnight"} : kw_fortnight)], "postprocess": first},
+    {"name": "laterKeyword", "symbols": [(lexer.has("otherKeyword") ? {type: "otherKeyword"} : otherKeyword)], "postprocess": (d, _, reject) => d[0].value === 'later' ? d[0] : reject},
+    {"name": "earlierKeyword", "symbols": [(lexer.has("otherKeyword") ? {type: "otherKeyword"} : otherKeyword)], "postprocess": (d, _, reject) => d[0].value === 'earlier' ? d[0] : reject},
+    {"name": "weekKeyword", "symbols": [(lexer.has("unit") ? {type: "unit"} : unit)], "postprocess":  (d, _, reject) => {
+          const val = d[0].value.toLowerCase();
+          if (val === 'week' || val === 'weeks') return d[0];
+          return reject;
+        } },
+    {"name": "businessKeyword", "symbols": [(lexer.has("kw_business") ? {type: "kw_business"} : kw_business)], "postprocess": first},
+    {"name": "eodKeyword", "symbols": [(lexer.has("kw_eod") ? {type: "kw_eod"} : kw_eod)], "postprocess": first},
+    {"name": "cobKeyword", "symbols": [(lexer.has("kw_cob") ? {type: "kw_cob"} : kw_cob)], "postprocess": first},
+    {"name": "closeKeyword", "symbols": [(lexer.has("kw_close") ? {type: "kw_close"} : kw_close)], "postprocess": first},
     {"name": "_$ebnf$1", "symbols": []},
     {"name": "_$ebnf$1", "symbols": ["_$ebnf$1", (lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": (d) => d[0].concat([d[1]])},
     {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": nuller}

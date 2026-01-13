@@ -139,7 +139,13 @@ const lexer = moo.compile({
       kw_night: ['night'],
       kw_fortnight: ['fortnight', 'fortnights'],
       // Other keywords
-      otherKeyword: ['fiscal', 'fy', 'daily', 'weekly', 'monthly', 'yearly', 'annually', 'hence', 'later'],
+      otherKeyword: ['fiscal', 'fy', 'daily', 'weekly', 'monthly', 'yearly', 'annually', 'hence', 'later', 'earlier'],
+      // Business keywords
+      kw_business: ['business'],
+      // EOD/COB keywords
+      kw_eod: ['eod'],
+      kw_cob: ['cob'],
+      kw_close: ['close'],
     }), // Keywords are matched against lowercase input
   },
 

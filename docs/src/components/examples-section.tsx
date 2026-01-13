@@ -5,7 +5,7 @@ export function ExamplesSection() {
       <p className="text-zinc-500 text-sm mb-6">
         A few examples of what you can parse. See the docs below for the full list.
       </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
         <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 space-y-1 text-zinc-500">
           <div className="text-blue-400 font-bold mb-2">Dates</div>
           <div>today, tomorrow, yesterday</div>
@@ -33,6 +33,20 @@ export function ExamplesSection() {
           <div>early january, mid Q1</div>
           <div>H1 2025, H2 2025</div>
           <div>spring, summer, winter</div>
+        </div>
+        <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/10 space-y-1 text-zinc-500">
+          <div className="text-rose-400 font-bold mb-2">Business</div>
+          <div>next business day</div>
+          <div>in 5 business days</div>
+          <div>EOD, COB, EOD Friday</div>
+          <div>close of business Monday</div>
+        </div>
+        <div className="p-4 rounded-xl bg-cyan-500/5 border border-cyan-500/10 space-y-1 text-zinc-500">
+          <div className="text-cyan-400 font-bold mb-2">Natural Time</div>
+          <div>half past 4, quarter to 5</div>
+          <div>noon on Friday, midnight</div>
+          <div>in a fortnight</div>
+          <div>week 12, the week of March 15</div>
         </div>
       </div>
     </section>
