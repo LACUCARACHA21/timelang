@@ -1,4 +1,4 @@
-import { parse, parseDate, parseDuration, parseSpan, extract } from 'timelang'
+import { parse, parseDate, parseDuration, parseSpan, scan } from 'timelang'
 import { FunctionCard } from './function-card'
 
 export function PlaygroundSection() {
@@ -33,10 +33,10 @@ export function PlaygroundSection() {
           fn={parseSpan}
         />
         <FunctionCard
-          name="extract()"
-          description="returns array of results"
-          placeholder="Kickoff - Jan 5, Sprint 1 - Jan 6 to Jan 19"
-          fn={extract}
+          name="scan()"
+          description="returns array of matches with positions"
+          placeholder="can we meet tomorrow at 5pm?"
+          fn={scan}
         />
       </div>
     </section>

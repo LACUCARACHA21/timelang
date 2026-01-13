@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parse, parseDate, parseDuration, parseSpan, extract } from '../src';
+import { parse, parseDate, parseDuration, parseSpan, scan } from '../src';
 
 describe('timelang setup', () => {
   it('should export parse function', () => {
@@ -18,8 +18,8 @@ describe('timelang setup', () => {
     expect(typeof parseSpan).toBe('function');
   });
 
-  it('should export extract function', () => {
-    expect(typeof extract).toBe('function');
+  it('should export scan function', () => {
+    expect(typeof scan).toBe('function');
   });
 
   it('parse should return null for unimplemented input', () => {

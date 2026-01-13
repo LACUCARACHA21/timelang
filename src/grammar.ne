@@ -773,6 +773,8 @@ dateFormat -> %integer %dash %integer %dash %integer {% d => {
 # Date with time
 dateWithTime -> date _ atConnector _ time {% d => ({ ...d[0], time: d[4] }) %}
               | date _ atConnector _ timeWord {% d => ({ ...d[0], time: { special: d[4] } }) %}
+              | date _ aroundConnector _ time {% d => ({ ...d[0], time: d[4] }) %}
+              | date _ aroundConnector _ timeWord {% d => ({ ...d[0], time: { special: d[4] } }) %}
               | time _ date {% d => ({ ...d[2], time: d[0] }) %}
               | timeWord _ date {% d => ({ ...d[2], time: { special: d[0] } }) %}
               | date _ time {% d => ({ ...d[0], time: d[2] }) %}

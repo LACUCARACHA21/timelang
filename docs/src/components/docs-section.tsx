@@ -40,7 +40,7 @@ parse('mid Q1')
 
       <div className="mt-12">
         <h3 className="text-lg font-bold text-zinc-100 mb-4">Helpers</h3>
-        <CodeBlock>{`import { parseDate, parseDuration, parseSpan, extract } from 'timelang'
+        <CodeBlock>{`import { parseDate, parseDuration, parseSpan, scan } from 'timelang'
 
 // Single dates
 parseDate('tomorrow')              // Date
@@ -56,9 +56,9 @@ parseSpan('jan 5 to jan 20')       // { start, end, duration }
 parseSpan('last 30 days')          // { start, end, duration }
 parseSpan('this week')             // { start, end, duration }
 
-// Extract multiple from text
-extract('Kickoff - Jan 5, Sprint 1 - Jan 6 to Jan 19, Launch - Feb 1')
-// → [{ type: 'date', title: 'Kickoff' }, { type: 'span', title: 'Sprint 1' }, ...]`}</CodeBlock>
+// Scan for dates in prose text
+scan('can we meet tomorrow at 5pm?')
+// → [{ result: { type: 'date', ... }, match: 'tomorrow at 5pm', start: 12, end: 27 }]`}</CodeBlock>
       </div>
 
       <div className="mt-12">
@@ -119,6 +119,13 @@ interface FuzzyResult {
   end: Date
   approximate: true
   title: string | null
+}
+
+interface ScanMatch {
+  result: ParseResult
+  match: string
+  start: number
+  end: number
 }`}</CodeBlock>
       </div>
     </section>

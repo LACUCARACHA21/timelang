@@ -1,4 +1,7 @@
-import { parseInternal, extractInternal } from './parser';
+import { parseInternal, scanInternal } from './parser';
+import type { ScanMatch } from './parser';
+
+export type { ScanMatch };
 
 export interface DateResult {
   type: 'date';
@@ -10,6 +13,7 @@ export interface DurationResult {
   type: 'duration';
   duration: number;
   title: string | null;
+  approximate?: boolean;
 }
 
 export interface SpanResult {
@@ -89,6 +93,6 @@ export function parseSpan(
   return null;
 }
 
-export function extract(input: string, options?: ParseOptions): ParseResult[] {
-  return extractInternal(input, options);
+export function scan(input: string, options?: ParseOptions): ScanMatch[] {
+  return scanInternal(input, options);
 }

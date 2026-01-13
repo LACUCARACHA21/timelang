@@ -28,7 +28,7 @@ npm install timelang
 Use any of the provided methods to parse time expressions:
 
 ```javascript
-import { parse, parseDate, parseDuration, parseSpan, extract } from 'timelang';
+import { parse, parseDate, parseDuration, parseSpan, scan } from 'timelang';
 
 parseDate('next friday at 3pm');        // Date
 parseDuration('2h 30m');                // 9000000 (milliseconds)
@@ -37,8 +37,8 @@ parseSpan('jan 5 to jan 20');           // { start: Date, end: Date, duration: n
 parse('Team Sync - next monday');       // { type: 'date', date, title: 'Team Sync' }
 parse('mid Q1');                        // { type: 'fuzzy', start, end, approximate: true }
 
-extract('Kickoff - Jan 5, Sprint 1 - Jan 6 to Jan 19, Launch - Feb 1');
-// Returns array of 3 parsed results with titles
+scan('can we meet tomorrow at 5pm?');
+// [{ result: {...}, match: 'tomorrow at 5pm', start: 12, end: 27 }]
 ```
 
 ## API Reference
@@ -49,7 +49,7 @@ extract('Kickoff - Jan 5, Sprint 1 - Jan 6 to Jan 19, Launch - Feb 1');
 | [`parse(input, options?)`](#parseinput-options) | Parse any time expression with type detection | `ParseResult` |
 | [`parseDuration(input, options?)`](#parsedurationinput-options) | Parse duration expressions | `number \| null` (ms) |
 | [`parseSpan(input, options?)`](#parsespaninput-options) | Parse date ranges and time spans | `SpanResult \| null` |
-| [`extract(input, options?)`](#extractinput-options) | Extract multiple time expressions from text | `ParseResult[]` |
+| [`scan(input, options?)`](#scaninput-options) | Find dates embedded in prose/free-form text | `ScanMatch[]` |
 
 See also: [Options](#options) · [TypeScript Types](#typescript-types) · [License](#license)
 
@@ -301,36 +301,52 @@ parseSpan('2 weeks');                  // null (duration, not span)
 parseSpan('random text');              // null
 ```
 
-### `extract(input, options?)`
+### `scan(input, options?)`
 
-Extracts multiple time expressions from text. Returns array of parsed results.
+Scans text for embedded date expressions. Returns array of matches with position info.
+
+Use `scan` when you need to find dates within free-form text like emails, messages, or documents.
 
 ```typescript
-// Comma separated
-extract('Kickoff - Jan 5, Sprint 1 - Jan 6 to Jan 19, Launch - Feb 1');
+// Basic prose scanning
+scan('can we meet tomorrow at 5pm?');
+// [{ result: { type: 'date', date: Date }, match: 'tomorrow at 5pm', start: 12, end: 27 }]
+
+scan("let's schedule for next friday");
+// [{ result: { type: 'date', date: Date }, match: 'next friday', start: 20, end: 31 }]
+
+// Multiple dates in text
+scan('we could meet tomorrow or maybe next monday');
 // [
-//   { type: 'date', date: Date, title: 'Kickoff' },
-//   { type: 'span', start: Date, end: Date, duration: number, title: 'Sprint 1' },
-//   { type: 'date', date: Date, title: 'Launch' }
+//   { result: { type: 'date', ... }, match: 'tomorrow', start: 14, end: 22 },
+//   { result: { type: 'date', ... }, match: 'next monday', start: 33, end: 44 }
 // ]
 
-// Semicolon separated
-extract('Phase 1 - Jan 1-15; Phase 2 - Jan 16-31; Phase 3 - Feb 1-15');
-// Array of 3 span results
+// Finds spans in prose
+scan('the conference runs from jan 5 to jan 10');
+// [{ result: { type: 'span', ... }, match: 'from jan 5 to jan 10', start: 20, end: 40 }]
 
-// Project planning
-extract(`
-  Design Phase - Jan 1 to Jan 15,
-  Development - Jan 16 to Feb 28,
-  Testing - March 1-15,
-  Launch - March 20
-`);
-// Array of 4 results with titles
+// Email-like text
+scan('Hi, can we reschedule from monday to wednesday? Let me know by friday.');
+// [
+//   { result: { type: 'span', ... }, match: 'from monday to wednesday', ... },
+//   { result: { type: 'date', ... }, match: 'friday', ... }
+// ]
 
-// Empty or invalid
-extract('no dates here');              // []
-extract('');                           // []
+// Handles ambiguous words contextually
+scan('you may call me anytime');          // [] - "may" is a verb here
+scan('the event is in may');              // [{ ..., match: 'may', ... }] - "may" is a month
+
+// Empty or no dates
+scan('hello world');                      // []
+scan('');                                 // []
 ```
+
+Each result includes:
+- `result` - The parsed `ParseResult` (date, span, duration, or fuzzy)
+- `match` - The matched text substring
+- `start` - Start position in the original string
+- `end` - End position in the original string
 
 ## Options
 
@@ -438,6 +454,13 @@ interface FuzzyResult {
 }
 
 type ParseResult = DateResult | DurationResult | SpanResult | FuzzyResult | null;
+
+interface ScanMatch {
+  result: ParseResult;  // The parsed result (never null)
+  match: string;        // The matched text
+  start: number;        // Start position in input
+  end: number;          // End position in input
+}
 ```
 
 ## License

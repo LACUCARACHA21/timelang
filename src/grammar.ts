@@ -806,6 +806,8 @@ const grammar: Grammar = {
         } },
     {"name": "dateWithTime", "symbols": ["date", "_", "atConnector", "_", "time"], "postprocess": d => ({ ...d[0], time: d[4] })},
     {"name": "dateWithTime", "symbols": ["date", "_", "atConnector", "_", "timeWord"], "postprocess": d => ({ ...d[0], time: { special: d[4] } })},
+    {"name": "dateWithTime", "symbols": ["date", "_", "aroundConnector", "_", "time"], "postprocess": d => ({ ...d[0], time: d[4] })},
+    {"name": "dateWithTime", "symbols": ["date", "_", "aroundConnector", "_", "timeWord"], "postprocess": d => ({ ...d[0], time: { special: d[4] } })},
     {"name": "dateWithTime", "symbols": ["time", "_", "date"], "postprocess": d => ({ ...d[2], time: d[0] })},
     {"name": "dateWithTime", "symbols": ["timeWord", "_", "date"], "postprocess": d => ({ ...d[2], time: { special: d[0] } })},
     {"name": "dateWithTime", "symbols": ["date", "_", "time"], "postprocess": d => ({ ...d[0], time: d[2] })},
