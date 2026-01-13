@@ -55,6 +55,9 @@ const lexer = moo.compile({
       kw_now: ['now'],
       kw_noon: ['noon'],
       kw_midnight: ['midnight'],
+      kw_morning: ['morning'],
+      kw_afternoon: ['afternoon'],
+      kw_evening: ['evening'],
       // Relative modifiers - each gets its own type for grammar disambiguation
       kw_next: ['next'],
       kw_last: ['last'],

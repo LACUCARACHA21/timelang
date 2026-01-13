@@ -274,27 +274,27 @@ function convertASTToResult(
 
       if (timeSpec) {
         if ('special' in timeSpec) {
+          let hour = 0;
           if (timeSpec.special === 'noon') {
-            resultDate = new Date(
-              Date.UTC(
-                resultDate.getUTCFullYear(),
-                resultDate.getUTCMonth(),
-                resultDate.getUTCDate(),
-                12,
-                0
-              )
-            );
+            hour = 12;
           } else if (timeSpec.special === 'midnight') {
-            resultDate = new Date(
-              Date.UTC(
-                resultDate.getUTCFullYear(),
-                resultDate.getUTCMonth(),
-                resultDate.getUTCDate(),
-                0,
-                0
-              )
-            );
+            hour = 0;
+          } else if (timeSpec.special === 'morning') {
+            hour = 9;
+          } else if (timeSpec.special === 'afternoon') {
+            hour = 14;
+          } else if (timeSpec.special === 'evening') {
+            hour = 18;
           }
+          resultDate = new Date(
+            Date.UTC(
+              resultDate.getUTCFullYear(),
+              resultDate.getUTCMonth(),
+              resultDate.getUTCDate(),
+              hour,
+              0
+            )
+          );
         } else {
           resultDate = new Date(
             Date.UTC(

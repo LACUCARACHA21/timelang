@@ -542,4 +542,45 @@ describe('Single Date Parsing', () => {
       expectDate('january 1', utc(2026, 1, 1), { referenceDate: novemberRef });
     });
   });
+
+  describe('Time-of-day modifiers (morning, afternoon, evening)', () => {
+    it('should parse "next monday in the afternoon" as next monday at 14:00', () => {
+      // Reference: Wednesday Jan 15, 2025. Next monday is Jan 20
+      expectDate('next monday in the afternoon', utc(2025, 1, 20, 14, 0));
+    });
+
+    it('should parse "next monday afternoon" as next monday at 14:00', () => {
+      expectDate('next monday afternoon', utc(2025, 1, 20, 14, 0));
+    });
+
+    it('should parse "last friday evening" as last friday at 18:00', () => {
+      // Reference: Wednesday Jan 15, 2025. Last friday is Jan 10
+      expectDate('last friday evening', utc(2025, 1, 10, 18, 0));
+    });
+
+    it('should parse "tomorrow morning" as tomorrow at 9:00', () => {
+      expectDate('tomorrow morning', utc(2025, 1, 16, 9, 0));
+    });
+
+    it('should parse "tomorrow afternoon" as tomorrow at 14:00', () => {
+      expectDate('tomorrow afternoon', utc(2025, 1, 16, 14, 0));
+    });
+
+    it('should parse "tomorrow evening" as tomorrow at 18:00', () => {
+      expectDate('tomorrow evening', utc(2025, 1, 16, 18, 0));
+    });
+
+    it('should parse "monday morning" as next monday at 9:00', () => {
+      expectDate('monday morning', utc(2025, 1, 20, 9, 0));
+    });
+
+    it('should parse "friday afternoon" as next friday at 14:00', () => {
+      // Next friday is Jan 17
+      expectDate('friday afternoon', utc(2025, 1, 17, 14, 0));
+    });
+
+    it('should parse "this friday evening" as this friday at 18:00', () => {
+      expectDate('this friday evening', utc(2025, 1, 17, 18, 0));
+    });
+  });
 });

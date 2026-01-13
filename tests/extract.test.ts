@@ -97,8 +97,8 @@ describe('Extract (Multiple Timespans)', () => {
       expect(results[1]?.title).toBe('Sprint 2');
     });
 
-    it('should extract "Morning meeting at 10am\\nAfternoon review at 3pm"', () => {
-      const results = extract('Morning meeting at 10am\nAfternoon review at 3pm', { referenceDate });
+    it('should extract "Team meeting at 10am\\nCode review at 3pm"', () => {
+      const results = extract('Team meeting at 10am\nCode review at 3pm', { referenceDate });
       expect(results).toHaveLength(2);
     });
 

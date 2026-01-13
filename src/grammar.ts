@@ -77,6 +77,9 @@ declare var kw_yesterday: any;
 declare var kw_now: any;
 declare var kw_noon: any;
 declare var kw_midnight: any;
+declare var kw_morning: any;
+declare var kw_afternoon: any;
+declare var kw_evening: any;
 declare var kw_weekend: any;
 declare var kw_tonight: any;
 declare var kw_night: any;
@@ -795,6 +798,7 @@ const grammar: Grammar = {
     {"name": "dateWithTime", "symbols": ["timeWord", "_", "onConnector", "_", "date"], "postprocess": d => ({ ...d[4], time: { special: d[0] } })},
     {"name": "dateWithTime", "symbols": ["timeWord", "_", "onConnector", "_", "weekday"], "postprocess": d => makeDate({ weekday: d[4], time: { special: d[0] } })},
     {"name": "dateWithTime", "symbols": ["midnight", "_", "tonightKeyword"], "postprocess": d => makeDate({ special: 'tonight', time: { special: 'midnight' } })},
+    {"name": "dateWithTime", "symbols": ["date", "_", "inConnector", "_", "theConnector", "_", "timeWord"], "postprocess": d => ({ ...d[0], time: { special: d[6] } })},
     {"name": "complexDate", "symbols": ["nextRelative", "_", "unit", "_", "weekday", "_", "time"], "postprocess": d => makeDate({ relative: 'next', period: d[2], weekday: d[4], time: d[6] })},
     {"name": "complexDate", "symbols": ["nextRelative", "_", "unit", "_", "weekday"], "postprocess": d => makeDate({ relative: 'next', period: d[2], weekday: d[4] })},
     {"name": "complexDate", "symbols": ["lastRelative", "_", "unit", "_", "weekday", "_", "time"], "postprocess": d => makeDate({ relative: 'last', period: d[2], weekday: d[4], time: d[6] })},
@@ -872,6 +876,9 @@ const grammar: Grammar = {
     {"name": "time", "symbols": ["quarterKeyword", "_", "toConnector", "_", "midnight"], "postprocess": d => ({ hour: 23, minute: 45 })},
     {"name": "timeWord", "symbols": ["noon"], "postprocess": d => 'noon'},
     {"name": "timeWord", "symbols": ["midnight"], "postprocess": d => 'midnight'},
+    {"name": "timeWord", "symbols": ["morning"], "postprocess": d => 'morning'},
+    {"name": "timeWord", "symbols": ["afternoon"], "postprocess": d => 'afternoon'},
+    {"name": "timeWord", "symbols": ["evening"], "postprocess": d => 'evening'},
     {"name": "number", "symbols": [(lexer.has("integer") ? {type: "integer"} : integer)], "postprocess": d => parseInt(d[0].value, 10)},
     {"name": "number", "symbols": [(lexer.has("decimal") ? {type: "decimal"} : decimal)], "postprocess": d => parseFloat(d[0].value)},
     {"name": "year", "symbols": [(lexer.has("integer") ? {type: "integer"} : integer)], "postprocess":  (d, _, reject) => {
@@ -967,6 +974,9 @@ const grammar: Grammar = {
     {"name": "now", "symbols": [(lexer.has("kw_now") ? {type: "kw_now"} : kw_now)], "postprocess": first},
     {"name": "noon", "symbols": [(lexer.has("kw_noon") ? {type: "kw_noon"} : kw_noon)], "postprocess": first},
     {"name": "midnight", "symbols": [(lexer.has("kw_midnight") ? {type: "kw_midnight"} : kw_midnight)], "postprocess": first},
+    {"name": "morning", "symbols": [(lexer.has("kw_morning") ? {type: "kw_morning"} : kw_morning)], "postprocess": first},
+    {"name": "afternoon", "symbols": [(lexer.has("kw_afternoon") ? {type: "kw_afternoon"} : kw_afternoon)], "postprocess": first},
+    {"name": "evening", "symbols": [(lexer.has("kw_evening") ? {type: "kw_evening"} : kw_evening)], "postprocess": first},
     {"name": "quarterKeyword", "symbols": [(lexer.has("unit") ? {type: "unit"} : unit)], "postprocess": (d, _, reject) => d[0].value === 'quarter' ? d[0] : reject},
     {"name": "hourNumber", "symbols": [(lexer.has("integer") ? {type: "integer"} : integer)], "postprocess":  (d, _, reject) => {
           const val = parseInt(d[0].value, 10);

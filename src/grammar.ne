@@ -763,6 +763,7 @@ dateWithTime -> date _ atConnector _ time {% d => ({ ...d[0], time: d[4] }) %}
               | timeWord _ onConnector _ date {% d => ({ ...d[4], time: { special: d[0] } }) %}
               | timeWord _ onConnector _ weekday {% d => makeDate({ weekday: d[4], time: { special: d[0] } }) %}
               | midnight _ tonightKeyword {% d => makeDate({ special: 'tonight', time: { special: 'midnight' } }) %}
+              | date _ inConnector _ theConnector _ timeWord {% d => ({ ...d[0], time: { special: d[6] } }) %}
 
 # Complex date expressions: "next week monday 10am"
 complexDate -> nextRelative _ unit _ weekday _ time {% d => makeDate({ relative: 'next', period: d[2], weekday: d[4], time: d[6] }) %}
@@ -846,6 +847,9 @@ time -> %time {% d => {
 # Time words
 timeWord -> noon {% d => 'noon' %}
           | midnight {% d => 'midnight' %}
+          | morning {% d => 'morning' %}
+          | afternoon {% d => 'afternoon' %}
+          | evening {% d => 'evening' %}
 
 # Terminal helpers
 number -> %integer {% d => parseInt(d[0].value, 10) %}
@@ -968,6 +972,9 @@ yesterday -> %kw_yesterday {% first %}
 now -> %kw_now {% first %}
 noon -> %kw_noon {% first %}
 midnight -> %kw_midnight {% first %}
+morning -> %kw_morning {% first %}
+afternoon -> %kw_afternoon {% first %}
+evening -> %kw_evening {% first %}
 
 # Quarter keyword for time expressions
 quarterKeyword -> %unit {% (d, _, reject) => d[0].value === 'quarter' ? d[0] : reject %}

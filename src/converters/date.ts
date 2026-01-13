@@ -17,6 +17,12 @@ function applyTime(date: Date, time: TimeInfo): void {
     date.setUTCHours(12, 0, 0, 0);
   } else if (time.special === 'midnight') {
     date.setUTCHours(0, 0, 0, 0);
+  } else if (time.special === 'morning') {
+    date.setUTCHours(9, 0, 0, 0);
+  } else if (time.special === 'afternoon') {
+    date.setUTCHours(14, 0, 0, 0);
+  } else if (time.special === 'evening') {
+    date.setUTCHours(18, 0, 0, 0);
   } else if (time.hour !== undefined) {
     date.setUTCHours(time.hour, time.minute ?? 0, 0, 0);
   }
