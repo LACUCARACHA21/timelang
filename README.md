@@ -4,6 +4,7 @@
 
 [![npm version](https://img.shields.io/npm/v/timelang)](https://www.npmjs.com/package/timelang)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Docs](https://img.shields.io/badge/docs-timelang.dev-purple)](https://timelang.dev)
 
 It takes natural language inputs and converts them into structured date, duration, or span objects.
 
