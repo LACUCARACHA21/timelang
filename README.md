@@ -1,6 +1,6 @@
 # timelang
 
->Parse and autocomplete natural language time expressions.
+> Packages to work with natural language time expressions.
 
 [![npm version](https://img.shields.io/npm/v/@timelang/parse)](https://www.npmjs.com/package/@timelang/parse)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
