@@ -23,22 +23,7 @@ import { CodeBlock } from '../components/CodeBlock'
         <section class="space-y-4">
           <CodeBlock code="npm install @timelang/suggest" language="bash" client:load />
         </section>
-
-        <!-- Smart Matching -->
-        <section class="space-y-6">
-          <h2 class="text-xl font-bold text-zinc-100">Smart Matching</h2>
-          <p class="text-sm text-zinc-400">
-            Handles abbreviations and partial matches intelligently.
-          </p>
-
-          <div class="grid sm:grid-cols-2 gap-4">
-            <MatchingExample client:load input="tom" result="tomorrow" />
-            <MatchingExample client:load input="mon" result="next monday" />
-            <MatchingExample client:load input="5 day" result="5 days ago, 5 days from now" />
-            <MatchingExample client:load input="next" result="next monday, next tuesday..." />
-          </div>
-        </section>
-
+        
         <!-- API -->
         <section id="docs" class="space-y-6">
           <h2 class="text-xl font-bold text-zinc-100">API</h2>

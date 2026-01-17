@@ -27,7 +27,7 @@ describe('suggest', () => {
       const result = suggest('5', { referenceDate });
 
       expect(result.length).toBeGreaterThan(0);
-      expect(result.every((s) => s.label.startsWith('5'))).toBe(true);
+      expect(result.every((s) => s.label.includes('5'))).toBe(true);
     });
 
     it('returns suggestions for "5 m"', () => {
@@ -343,6 +343,34 @@ describe('suggest', () => {
 
       expect(result.length).toBeGreaterThan(0);
       expect(result[0]?.label).toBe('in a fortnight');
+    });
+
+    it('returns suggestions for "in 3"', () => {
+      const result = suggest('in 3', { referenceDate, limit: 10 });
+
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0]?.label).toBe('in 3 minutes');
+    });
+
+    it('returns suggestions for "in 3 h"', () => {
+      const result = suggest('in 3 h', { referenceDate, limit: 10 });
+
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0]?.label).toBe('in 3 hours');
+    });
+
+    it('returns suggestions for "in 3 d"', () => {
+      const result = suggest('in 3 d', { referenceDate, limit: 10 });
+
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0]?.label).toBe('in 3 days');
+    });
+
+    it('returns suggestions for "in 3 w"', () => {
+      const result = suggest('in 3 w', { referenceDate, limit: 10 });
+
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0]?.label).toBe('in 3 weeks');
     });
   });
 

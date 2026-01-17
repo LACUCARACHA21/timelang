@@ -197,6 +197,14 @@ function generateCandidates(): string[] {
 
   candidates.push(...IN_A_EXPRESSIONS);
 
+  // "in N units" patterns (e.g., "in 3 minutes", "in 5 hours")
+  for (let n = 1; n <= 60; n++) {
+    for (const unit of TIME_UNITS) {
+      const unitLabel = n === 1 ? unit : `${unit}s`;
+      candidates.push(`in ${n} ${unitLabel}`);
+    }
+  }
+
   // Bare times for time mode
   candidates.push(...TIMES);
 
