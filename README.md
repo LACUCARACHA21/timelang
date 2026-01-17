@@ -7,7 +7,7 @@
 
 | Package | What it does? | Version |
 |---------|-------------|---------|
-| [@timelang/parse](https://timelang.dev/) | Parse natural language time expressions into dates, durations, and ranges | [![npm version](https://img.shields.io/npm/v/@timelang/parse)](https://www.npmjs.com/package/@timelang/parse) |
+| [@timelang/parse](https://timelang.dev/) | Parse natural language time expressions into dates, times, and ranges | [![npm version](https://img.shields.io/npm/v/@timelang/parse)](https://www.npmjs.com/package/@timelang/parse) |
 | [@timelang/suggest](https://timelang.dev/suggest/) | Autocomplete suggestions for time expressions | [![npm version](https://img.shields.io/npm/v/@timelang/suggest)](https://www.npmjs.com/package/@timelang/suggest) |
 
 ## @timelang/parse
