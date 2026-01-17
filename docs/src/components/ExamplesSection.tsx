@@ -168,8 +168,7 @@ export function ExamplesSection() {
     <section className="py-10">
       <div className="max-w-3xl mx-auto mb-8">
         <p className="text-zinc-500 text-sm mb-6">
-          A few examples of what you can parse. See the docs below for the full
-          list.
+          A few examples of what you can parse. See the docs below for details.
         </p>
       </div>
       <div className="relative">
