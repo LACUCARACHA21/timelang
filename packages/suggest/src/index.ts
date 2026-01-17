@@ -170,7 +170,13 @@ function filterCandidatesByMode(candidates: string[], mode: SuggestMode): string
   return candidates;
 }
 
+let cachedCandidates: string[] | null = null;
+
 function generateCandidates(): string[] {
+  if (cachedCandidates) {
+    return cachedCandidates;
+  }
+
   const candidates: string[] = [];
 
   candidates.push(...SPECIAL_DAYS);
@@ -259,6 +265,7 @@ function generateCandidates(): string[] {
   candidates.push(...WEEKDAYS);
   candidates.push(...RELATIVE_DAYS);
 
+  cachedCandidates = candidates;
   return candidates;
 }
 

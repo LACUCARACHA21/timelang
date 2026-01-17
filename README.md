@@ -1,12 +1,111 @@
 # timelang
 
->Parse natural language time expressions into dates, durations, and ranges.
+>Parse and autocomplete natural language time expressions.
 
 [![npm version](https://img.shields.io/npm/v/@timelang/parse)](https://www.npmjs.com/package/@timelang/parse)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Docs](https://img.shields.io/badge/docs-timelang.dev-purple)](https://timelang.dev)
 
-It takes natural language inputs and converts them into structured date, duration, or span objects.
+## Table of Contents
+
+- [Packages](#packages)
+- [Quick Start](#quick-start)
+  - [@timelang/parse](#timelangparse-quick-start)
+  - [@timelang/suggest](#timelangsuggest-quick-start)
+- [@timelang/parse](#timelangparse)
+  - [Features](#features)
+  - [Installation](#installation)
+  - [API Reference](#api-reference)
+  - [API](#api)
+    - [parseDate](#parsedateinput-options)
+    - [parse](#parseinput-options)
+    - [parseDuration](#parsedurationinput-options)
+    - [parseSpan](#parsespaninput-options)
+    - [scan](#scaninput-options)
+  - [Options](#options)
+  - [TypeScript Types](#typescript-types)
+- [@timelang/suggest](#timelangsuggest)
+  - [Features](#suggest-features)
+  - [Installation](#suggest-installation)
+  - [API](#suggest-api)
+    - [suggest](#suggestinput-options)
+    - [suggestTime](#suggesttimeinput-options)
+  - [Options](#suggest-options)
+  - [TypeScript Types](#suggest-typescript-types)
+- [License](#license)
+
+## Packages
+
+| Package | Description |
+|---------|-------------|
+| [@timelang/parse](#timelangparse) | Parse natural language time expressions into dates, durations, and ranges |
+| [@timelang/suggest](#timelangsuggest) | Autocomplete suggestions for time expressions |
+
+## Quick Start
+
+### @timelang/parse Quick Start
+
+```bash
+npm install @timelang/parse
+```
+
+```javascript
+import { parse, parseDate, parseDuration, parseSpan, scan } from '@timelang/parse';
+
+parseDate('next friday at 3pm');        // Date
+parseDuration('2h 30m');                // 9000000 (milliseconds)
+parseSpan('jan 5 to jan 20');           // { start: Date, end: Date, duration: number }
+
+parse('Team Sync - next monday');       // { type: 'date', date, title: 'Team Sync' }
+parse('mid Q1');                        // { type: 'fuzzy', start, end, approximate: true }
+
+scan("let's meet next monday at 530pm");
+// [{ result: {...}, match: 'next monday at 530pm', start: 11, end: 31 }]
+```
+
+### @timelang/suggest Quick Start
+
+```bash
+npm install @timelang/suggest
+```
+
+```javascript
+import { suggest, suggestTime } from '@timelang/suggest';
+
+// Get date/time suggestions as user types
+suggest('tom');
+// [
+//   { label: 'tomorrow at 9am', date: Date },
+//   { label: 'tomorrow at 2pm', date: Date },
+//   { label: 'tomorrow', date: Date },
+//   ...
+// ]
+
+suggest('next');
+// [
+//   { label: 'next week', date: Date },
+//   { label: 'next month', date: Date },
+//   { label: 'next monday', date: Date },
+//   ...
+// ]
+
+// Get time-only suggestions
+suggestTime('9');
+// [
+//   { label: '09:00 am', hour: 9, minute: 0, period: 'am' },
+//   { label: '09:15 am', hour: 9, minute: 15, period: 'am' },
+//   { label: '09:00 pm', hour: 9, minute: 0, period: 'pm' },
+//   ...
+// ]
+```
+
+---
+
+# @timelang/parse
+
+Parse natural language time expressions into dates, durations, and ranges.
+
+## Features
 
 - **Flexible inputs** — `tomorrow`, `next friday at 3pm`, `jan 5 to jan 20`, `2 weeks`
 - **Fuzzy periods** — `mid Q1`, `early january`, `end of month`
@@ -19,26 +118,8 @@ It takes natural language inputs and converts them into structured date, duratio
 
 ## Installation
 
-Install the package using your preferred package manager:
-
 ```bash
 npm install @timelang/parse
-```
-
-Use any of the provided methods to parse time expressions:
-
-```javascript
-import { parse, parseDate, parseDuration, parseSpan, scan } from '@timelang/parse';
-
-parseDate('next friday at 3pm');        // Date
-parseDuration('2h 30m');                // 9000000 (milliseconds)
-parseSpan('jan 5 to jan 20');           // { start: Date, end: Date, duration: number }
-
-parse('Team Sync - next monday');       // { type: 'date', date, title: 'Team Sync' }
-parse('mid Q1');                        // { type: 'fuzzy', start, end, approximate: true }
-
-scan('can we meet tomorrow at 5pm?');
-// [{ result: {...}, match: 'tomorrow at 5pm', start: 12, end: 27 }]
 ```
 
 ## API Reference
@@ -463,6 +544,215 @@ interface ScanMatch {
   end: number;          // End position in input
 }
 ```
+
+---
+
+# @timelang/suggest
+
+Autocomplete suggestions for time expressions. Perfect for building date/time picker inputs with natural language support.
+
+## Suggest Features
+
+- **Smart matching** — Fuzzy matching with abbreviation support (`tom` → `tomorrow`, `nxt` → `next`)
+- **Multiple modes** — Date-only, time-only, or datetime suggestions
+- **Configurable sorting** — Sort by closest, future-only, or past-only dates
+- **Date constraints** — Filter suggestions by min/max date
+- **Business hours priority** — Business hour times (9am-5pm) ranked higher
+- **Time suggestions** — Dedicated time picker with configurable step intervals
+
+## Suggest Installation
+
+```bash
+npm install @timelang/suggest
+```
+
+## Suggest API
+
+### `suggest(input, options?)`
+
+Returns an array of date/time suggestions based on user input.
+
+```typescript
+import { suggest } from '@timelang/suggest';
+
+// Empty input returns sensible defaults
+suggest('');
+// [
+//   { label: 'tomorrow at 9am', date: Date },
+//   { label: 'tomorrow at 2pm', date: Date },
+//   { label: 'day after tomorrow', date: Date },
+//   { label: 'this week', date: Date },
+//   ...
+// ]
+
+// Partial input matching
+suggest('tom');
+// [
+//   { label: 'tomorrow at 9am', date: Date },
+//   { label: 'tomorrow at 2pm', date: Date },
+//   { label: 'tomorrow', date: Date },
+//   ...
+// ]
+
+suggest('next');
+// [
+//   { label: 'next week', date: Date },
+//   { label: 'next month', date: Date },
+//   { label: 'next monday', date: Date },
+//   { label: 'next tuesday', date: Date },
+//   ...
+// ]
+
+// Abbreviations are expanded
+suggest('mon');      // matches 'monday', 'next monday', etc.
+suggest('tmrw');     // matches 'tomorrow'
+suggest('wk');       // matches 'this week', 'next week', etc.
+
+// Multi-word matching
+suggest('next fri');
+// [
+//   { label: 'next friday', date: Date },
+//   { label: 'next friday at 9am', date: Date },
+//   ...
+// ]
+
+// Date-only mode (no time expressions)
+suggest('tom', { mode: 'date' });
+// [
+//   { label: 'tomorrow', date: Date },
+//   { label: 'day after tomorrow', date: Date },
+//   ...
+// ]
+
+// Time-only mode
+suggest('', { mode: 'time' });
+// [
+//   { label: 'now', date: Date },
+//   { label: 'in an hour', date: Date },
+//   { label: 'in 30 minutes', date: Date },
+//   ...
+// ]
+
+// Filter by date range
+suggest('next', { minDate: new Date('2025-01-01'), maxDate: new Date('2025-12-31') });
+
+// Sort preference
+suggest('', { sortPreference: 'future' });  // Future dates first
+suggest('', { sortPreference: 'past' });    // Past dates first
+suggest('', { sortPreference: 'closest' }); // Closest to reference date (default)
+```
+
+### `suggestTime(input, options?)`
+
+Returns time-only suggestions for time picker inputs.
+
+```typescript
+import { suggestTime } from '@timelang/suggest';
+
+// Empty input returns times at step intervals, business hours first
+suggestTime('');
+// [
+//   { label: '09:00 am', hour: 9, minute: 0, period: 'am' },
+//   { label: '09:15 am', hour: 9, minute: 15, period: 'am' },
+//   { label: '09:30 am', hour: 9, minute: 30, period: 'am' },
+//   ...
+// ]
+
+// Partial hour input
+suggestTime('9');
+// [
+//   { label: '09:00 am', hour: 9, minute: 0, period: 'am' },
+//   { label: '09:15 am', hour: 9, minute: 15, period: 'am' },
+//   { label: '09:00 pm', hour: 9, minute: 0, period: 'pm' },
+//   ...
+// ]
+
+// With partial minutes
+suggestTime('93');  // 9:3x
+// [
+//   { label: '09:30 am', hour: 9, minute: 30, period: 'am' },
+//   { label: '09:30 pm', hour: 9, minute: 30, period: 'pm' },
+//   ...
+// ]
+
+// Colon format
+suggestTime('9:30');
+// [
+//   { label: '09:30 am', hour: 9, minute: 30, period: 'am' },
+//   { label: '09:30 pm', hour: 9, minute: 30, period: 'pm' },
+// ]
+
+// With AM/PM
+suggestTime('9p');
+// [
+//   { label: '09:00 pm', hour: 9, minute: 0, period: 'pm' },
+//   { label: '09:15 pm', hour: 9, minute: 15, period: 'pm' },
+//   ...
+// ]
+
+// 24-hour format
+suggestTime('14', { format: '24h' });
+// [
+//   { label: '14:00', hour: 14, minute: 0 },
+//   { label: '14:15', hour: 14, minute: 15 },
+//   ...
+// ]
+
+// Custom step interval
+suggestTime('9', { step: 30 });
+// [
+//   { label: '09:00 am', hour: 9, minute: 0, period: 'am' },
+//   { label: '09:30 am', hour: 9, minute: 30, period: 'am' },
+//   ...
+// ]
+```
+
+## Suggest Options
+
+### SuggestOptions
+
+```typescript
+interface SuggestOptions {
+  referenceDate?: Date;       // Default: new Date()
+  limit?: number;             // Max suggestions to return (default: 5)
+  mode?: SuggestMode;         // 'date' | 'datetime' | 'time' (default: 'datetime')
+  minDate?: Date;             // Filter out dates before this
+  maxDate?: Date;             // Filter out dates after this
+  sortPreference?: SortPreference;  // 'closest' | 'future' | 'past' (default: 'closest')
+}
+```
+
+### SuggestTimeOptions
+
+```typescript
+interface SuggestTimeOptions {
+  step?: number;              // Minute step interval (default: 15)
+  limit?: number;             // Max suggestions to return (default: 10)
+  format?: TimeFormat;        // '12h' | '24h' (default: '12h')
+}
+```
+
+## Suggest TypeScript Types
+
+```typescript
+interface Suggestion {
+  label: string;  // The suggestion text (e.g., 'tomorrow at 9am')
+  date: Date;     // The parsed date
+}
+
+interface TimeSuggestion {
+  label: string;              // The formatted time (e.g., '09:30 am')
+  hour: number;               // Hour (12h or 24h depending on format)
+  minute: number;             // Minute
+  period?: 'am' | 'pm';       // Only present when format is '12h'
+}
+
+type SuggestMode = 'date' | 'datetime' | 'time';
+type SortPreference = 'closest' | 'future' | 'past';
+type TimeFormat = '12h' | '24h';
+```
+
+---
 
 ## License
 
