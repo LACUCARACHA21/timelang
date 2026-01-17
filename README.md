@@ -6,6 +6,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Docs](https://img.shields.io/badge/docs-timelang.dev-purple)](https://timelang.dev)
 
+| Package | What it does? |
+|---------|-------------|
+| [@timelang/parse](#timelangparse) | Parse natural language time expressions into dates, durations, and ranges |
+| [@timelang/suggest](#timelangsuggest) | Autocomplete suggestions for time expressions |
+
 ## Table of Contents
 
 - [Packages](#packages)
@@ -25,13 +30,6 @@
   - [Options](#suggest-options)
   - [TypeScript Types](#suggest-typescript-types)
 - [License](#license)
-
-## Packages
-
-| Package | Description |
-|---------|-------------|
-| [@timelang/parse](#timelangparse) | Parse natural language time expressions into dates, durations, and ranges |
-| [@timelang/suggest](#timelangsuggest) | Autocomplete suggestions for time expressions |
 
 ## Quick Start
 
